@@ -6,6 +6,10 @@ export default withAuth({
       return token?.role === "user" || token?.role === "admin";
     },
   },
+  pages: {
+    signIn: "/autenticar/login",
+    error: "/autenticar/error", 
+  },
 });
 
 export const config = {
