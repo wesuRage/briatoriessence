@@ -14,34 +14,92 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
-  email    String  @unique
-  name     String
-  image    String?
-  password String?
-  role     String  @default("user")
-  cart     Cart[]
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  email       String  @unique
+  name        String
+  image       String?
+  password    String?
+  role        String  @default("user")
+  cart        Cart[]
+  cpf         String?
+  address     Address?
+  pedidos     Pedido[]
+}
+
+model Address {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  rua         String
+  numero      String
+  complemento String?
+  bairro      String
+  cidade      String
+  estado      String
+  cep         String
+  userId      String  @unique @db.ObjectId
+  user        User    @relation(fields: [userId], references: [id])
+}
+
+model CartProduto {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    String   @db.ObjectId
+  produto   Produto  @relation(fields: [produtoId], references: [id])
+  produtoId String   @db.ObjectId
+  quantidade Int
 }
 
 model Cart {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  user      User      @relation(fields: [userId], references: [id])
-  userId    String    @db.ObjectId
-  products  Produto[]
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  user      User          @relation(fields: [userId], references: [id])
+  userId    String        @db.ObjectId
+  products  CartProduto[]
   total     Float
   status    String
 }
 
 model Produto {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  nome      String
-  descricao String
-  preco     Float
-  precoRis  Float
-  imagens   String[]
-  tags      String
-  Cart      Cart?    @relation(fields: [cartId], references: [id])
-  cartId    String?  @db.ObjectId
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  nome        String        @unique
+  descricao   String
+  precoOrg    Float
+  precoDes    Float
+  imagens     String[]
+  tags        String
+  peso        Float
+  altura      Float
+  largura     Float
+  comprimento Float
+  Cart        CartProduto[]
+  pedidos     PedidoProduto[]
+}
+
+model Pedido {
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  user              User             @relation(fields: [userId], references: [id])
+  userId            String           @db.ObjectId
+  produtos          PedidoProduto[]
+  valorRecebido     Float
+  frete             Float
+  valorFrete        Float
+  tipoFrete         String
+  totalProdutos     Int
+  valorTotal        Float
+  nomeDestinatario  String
+  meioPagamento     String
+  status            String           @default("processando")
+  codigoRastreio    String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model PedidoProduto {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  pedido      Pedido   @relation(fields: [pedidoId], references: [id])
+  pedidoId    String   @db.ObjectId
+  produto     Produto  @relation(fields: [produtoId], references: [id])
+  produtoId   String   @db.ObjectId
+  quantidade  Int
+  preco       Float
 }
 
 model Banners {
