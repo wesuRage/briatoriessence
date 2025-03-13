@@ -5,7 +5,7 @@ interface MainProps {
 
 export default function Main({children, noSpace}: MainProps) {
     return (
-        <main className="p-4">
+        <main className="p-6">
             <div className={`${ noSpace? "" : "mt-[134px]"}`}></div>
             {children}
         </main>
