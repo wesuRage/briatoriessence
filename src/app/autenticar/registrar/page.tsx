@@ -41,7 +41,6 @@ export default function Registrar() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<userFormData>({ resolver: zodResolver(createUserFormSchema) });
 

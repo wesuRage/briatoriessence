@@ -1,23 +1,27 @@
 "use client";
 
+import { Suspense, useState } from "react";
 import Main from "@/components/Main";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import Link from "next/link";
 import { MdOutlineAccountCircle } from "react-icons/md";
 import { handleGoogleSignIn } from "@/handlers/handleGoogleSignIn";
 import { useSearchParams } from "next/navigation";
 
-export default function Autenticar() {
+// Componente que utiliza useSearchParams()
+function AutenticarContent() {
   const [showPass, setShowPass] = useState<boolean>(false);
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
 
   const createUserFormSchema = z.object({
-    email: z.string().email("E-mail inválido").max(40, "E-mail muito longo"),
+    email: z
+      .string()
+      .email("E-mail inválido")
+      .max(40, "E-mail muito longo"),
     password: z
       .string()
       .min(8, "Sua senha deve conter no mínimo 8 caracteres")
@@ -29,7 +33,6 @@ export default function Autenticar() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<userFormData>({ resolver: zodResolver(createUserFormSchema) });
 
@@ -86,7 +89,7 @@ export default function Autenticar() {
             <div
               className={`absolute ${
                 errors.password ? "top-[-20px]" : "top-0"
-              }  inset-y-0 right-0 pr-3 flex items-center text-lg text-gray-400 leading-5 cursor-pointer`}
+              } inset-y-0 right-0 pr-3 flex items-center text-lg text-gray-400 leading-5 cursor-pointer`}
               onClick={() => setShowPass(!showPass)}
             >
               {showPass ? <FaEyeSlash /> : <FaEye />}
@@ -123,9 +126,8 @@ export default function Autenticar() {
 
           <section className="flex flex-col gap-5 justify-center items-center mt-5">
             <div className="w-full relative flex justify-center items-center ">
-
-            <hr className="w-full border border-gray-300" />
-            <p className="mx-3 text-gray-300 absolute bg-white p-2">OU</p>
+              <hr className="w-full border border-gray-300" />
+              <p className="mx-3 text-gray-300 absolute bg-white p-2">OU</p>
             </div>
 
             <button
@@ -133,12 +135,21 @@ export default function Autenticar() {
               onClick={() => handleGoogleSignIn(callbackUrl)}
               className="flex items-center justify-center border-2 border-black text-black p-2 rounded-md transition-colors hover:bg-black hover:text-white duration-200 cursor-pointer w-full"
             >
-              <FaGoogle className="text-2xl inline-block me-2" /> 
+              <FaGoogle className="text-2xl inline-block me-2" />
               <p>Entrar com Google</p>
             </button>
           </section>
         </form>
       </section>
     </Main>
+  );
+}
+
+// Componente exportado com Suspense que engloba AutenticarContent
+export default function Autenticar() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <AutenticarContent />
+    </Suspense>
   );
 }
