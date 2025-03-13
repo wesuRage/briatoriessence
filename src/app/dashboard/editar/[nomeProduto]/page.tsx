@@ -516,7 +516,7 @@ export default function EditarProduto() {
               placeholder=" "
             />
             <label
-              htmlFor="largura"
+              htmlFor="largura mt-2"
               className={`select-none absolute bg-white p-[2px] left-3 transition-all peer-placeholder-shown:top-[0.45rem] peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 top-[-0.8rem] text-sm ${
                 errors.largura ? "text-red-400" : "text-gray-300"
               } peer-focus:text-[var(--primary)] peer-focus:top-[-0.8rem] peer-focus:text-sm`}
@@ -530,7 +530,7 @@ export default function EditarProduto() {
 
           <div className="relative">
             <input
-              id="comprimento"
+              id="comprimento mt-2"
               type="text"
               {...register("comprimento", { valueAsNumber: true })}
               className={`peer h-10 w-full border rounded-md px-3 py-5 text-sm focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none ${
