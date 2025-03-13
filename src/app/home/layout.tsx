@@ -15,14 +15,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-br" suppressHydrationWarning={true}>
-      <body className="antialiased">
-        <AuthProvider>
-          <Header userPage />
-          {children}
-          <Footer />
-        </AuthProvider>
-      </body>
-    </html>
+    <AuthProvider>
+      <Header />
+      {children}
+      <Footer />
+    </AuthProvider>
   );
 }
