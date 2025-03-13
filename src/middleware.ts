@@ -3,7 +3,7 @@ import { withAuth } from "next-auth/middleware";
 export default withAuth({
   callbacks: {
     authorized: ({ token }) => {
-      return token?.role === "user" || token?.role === "admin";
+      return token?.role === "admin";
     },
   },
   pages: {
@@ -13,5 +13,5 @@ export default withAuth({
 });
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/api/produto"],
 };
