@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import ProdutoCard from "@/components/ProdutoCard";
 import { useSession } from "next-auth/react";
@@ -16,14 +15,24 @@ interface Produto {
   tags: string;
 }
 
-function ProdutosList() {
+export default function Loja() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [filteredProdutos, setFilteredProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeButton, setActiveButton] = useState<string | null>(null);
   const { data: session, status } = useSession();
-  const searchParams = useSearchParams();
-  const searchQuery = searchParams.get("search");
+  const title = "árabe";
+
+  useEffect(() => {
+    if (title) {
+      const filtered = produtos.filter((produto) =>
+        produto.tags.toLowerCase().includes(title.toLowerCase())
+      );
+      setFilteredProdutos(filtered);
+    } else {
+      setFilteredProdutos(produtos);
+    }
+  }, [title, produtos]);
 
   useEffect(() => {
     const fetchProdutos = async () => {
@@ -38,17 +47,6 @@ function ProdutosList() {
 
     fetchProdutos();
   }, []);
-
-  useEffect(() => {
-    if (searchQuery) {
-      const filtered = produtos.filter((produto) =>
-        produto.tags.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredProdutos(filtered);
-    } else {
-      setFilteredProdutos(produtos);
-    }
-  }, [searchQuery, produtos]);
 
   const sortByNameAsc = () => {
     const sorted = [...filteredProdutos].sort((a, b) =>
@@ -93,7 +91,7 @@ function ProdutosList() {
   return (
     <section className="w-full">
       <section className="container mx-auto mt-4 flex flex-col items-center w-full md:max-w-[1280px]">
-        <h2 className="text-4xl">Nossos Produtos</h2>
+        <h2 className="text-4xl">Perfumes Árabes</h2>
         <div className="w-full flex items-center">
           <div className="font-bold mt-4">
             <h3>Filtrar:</h3>
@@ -134,18 +132,9 @@ function ProdutosList() {
           </div>
         </div>
       </section>
-      {searchQuery && (
-        <section className="container mx-auto mt-4 flex flex-col items-center w-full md:max-w-[1280px]">
-          <div className="w-full flex items-center">
-            <h2 className="text-3xl">
-              Exibindo resultados para: {searchQuery}
-            </h2>
-          </div>
-        </section>
-      )}
       {filteredProdutos.length > 0 ? (
         <section className="container mx-auto mt-4 flex flex-col items-center w-full md:max-w-[1280px]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 w-full">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 w-full">
             {filteredProdutos.map((produto: Produto, index: number) => (
               <ProdutoCard
                 key={index}
@@ -161,13 +150,5 @@ function ProdutosList() {
         <p>Nenhum produto encontrado.</p>
       )}
     </section>
-  );
-}
-
-export default function Loja() {
-  return (
-    <Suspense fallback={<div>Carregando...</div>}>
-      <ProdutosList />
-    </Suspense>
   );
 }
