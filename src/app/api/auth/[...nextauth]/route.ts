@@ -18,7 +18,6 @@ interface CustomUser extends User {
   role: string;
 }
 
-// Função para encontrar ou criar usuário no banco de dados
 async function findOrCreateUser(
   email: string,
   name: string,
@@ -61,8 +60,7 @@ async function findOrCreateUser(
   return user;
 }
 
-// Configuração do NextAuth
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   secret: process.env.NEXTAUTH_SECRET,
   jwt: { secret: process.env.NEXTAUTH_SECRET },
