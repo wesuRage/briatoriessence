@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { GoGear, GoPersonAdd } from "react-icons/go";
 import { Session } from "next-auth";
+import { signOut } from "next-auth/react";
 
 interface ProfileMenuProps {
   session: Session | null;
@@ -21,7 +22,10 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
 }) => {
   if (session?.user?.role === "admin") {
     return (
-      <Link href="/dashboard/" className=" shadow-md rounded-md p-2 w-[3.3em] h-[3.3em] flex justify-center items-center">
+      <Link
+        href="/dashboard/"
+        className=" shadow-md rounded-md p-2 w-[3.3em] h-[3.3em] flex justify-center items-center"
+      >
         <GoGear className="text-4xl" />
       </Link>
     );
@@ -44,11 +48,21 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
         <div className="min-w-[150px]">
           <ul
             className={`${
-              showProfileSettings ? "scale-100 right-11 top-12" : "right-0 top-0 scale-0"
+              showProfileSettings
+                ? "scale-100 right-11 top-12"
+                : "right-0 top-0 scale-0"
             } transition-all absolute w-full bg-white shadow-md border border-gray-300 mt-2`}
           >
-            <li className="line-clamp-1 p-2 underline decoration-[var(--primary)]">{session?.user?.name}</li>
-            <li className="line-clamp-1 p-2">{session?.user?.name}</li>
+            <li className="line-clamp-1 p-2 underline decoration-[var(--primary)]">
+              {session?.user?.name}
+            </li>
+            <li className="line-clamp-1 p-2">
+              <Link href="/home/meu-perfil">Meu Perfil</Link>
+            </li>
+            <hr />
+            <li className="line-clamp-1 p-2">
+              <button onClick={() => { signOut(); setShowProfileSettings(false) }} className="text-red-500 cursor-pointer hover:underline">Sair da conta</button>
+            </li> 
           </ul>
         </div>
       </>

@@ -9,43 +9,39 @@ import SearchBar from "./SearchBar";
 import ProfileMenu from "./ProfileMenu";
 import CartModal from "./CartModal";
 import NavigationMenu from "./NavigationMenu";
+import Skeleton from "react-loading-skeleton";
 
 const menuItems = [
-  { href: "/home/loja#sobre", label: "Sobre" },
-  { href: "/home/loja#promoção", label: "Promoção" },
-  { href: "/home/loja#feminino", label: "Feminino" },
-  { href: "/home/loja#masculino", label: "Masculino" },
-  { href: "/home/loja#decant", label: "Decant" },
-  { href: "/home/loja#arabe", label: "Árabe" },
-  { href: "/home/loja#hidratante", label: "Hidratante" },
-  { href: "/home/loja#victoria", label: "Victoria's Secret" },
+  { href: "/home#sobre", label: "Sobre" },
+  { href: "/home/loja/femininos", label: "Femininos" },
+  { href: "/home/loja/masculinos", label: "Masculinos" },
+  { href: "/home/loja/decants", label: "Decants" },
+  { href: "/home/loja/perfumes-arabes", label: "Árabes" },
+  { href: "/home/loja/hidratantes", label: "Hidratantes" },
+  { href: "/home/loja/victoria's-secret", label: "Victoria's Secret" },
 ];
 
 const allowedUrls = [
-  "/home/loja#sobre",
-  "/home/loja#promoção",
-  "/home/loja#feminino",
-  "/home/loja#masculino",
-  "/home/loja#decant",
-  "/home/loja#arabe",
-  "/home/loja#hidratante",
-  "/home/loja#victoria",
+  "/home#sobre",
+  "/home/loja/femininos",
+  "/home/loja/masculinos",
+  "/home/loja/decants",
+  "/home/loja/perfumes-arabes",
+  "/home/loja/hidratantes",
+  "/home/loja/victoria's-secret",
   "/home/dashboard/",
   "/home/minha-conta",
   "/autenticar/login",
 ];
 
-interface HeaderProps {
-  userPage?: boolean;
-}
-
-const Header: React.FC<HeaderProps> = ({ userPage }) => {
-  const { data: session } = useSession();
+export default function Header() {
+  const { data: session, status } = useSession();
   const [shrink, setShrink] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showCart, setShowCart] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const profileContainerRef = useRef<HTMLDivElement>(null);
   const cartRef = useRef<HTMLDivElement>(null);
@@ -69,7 +65,7 @@ const Header: React.FC<HeaderProps> = ({ userPage }) => {
         profileContainerRef.current &&
         !profileContainerRef.current.contains(event.target as Node)
       ) {
-        setShowProfileSettings(false);
+        setTimeout(() => setShowProfileSettings(false), 100);
       }
     };
     document.addEventListener("mousedown", handleClickOutsideProfile);
@@ -92,10 +88,34 @@ const Header: React.FC<HeaderProps> = ({ userPage }) => {
     }
   }, [showSearch]);
 
+  useEffect(() => {
+    const fetchCartItemCount = async () => {
+      if (session) {
+        try {
+          const response = await fetch("/api/usuario/carrinho");
+          const data = await response.json();
+          if (data.status === "success" && data.data) {
+            const itemCount = data.data.products.reduce(
+              (acc: number, item: any) => acc + item.quantidade,
+              0
+            );
+            setCartItemCount(itemCount);
+          } else {
+            console.error("Erro ao buscar carrinho:", data.data);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar carrinho:", error);
+        }
+      }
+    };
+
+    fetchCartItemCount();
+  }, [session]);
+
   return (
-    <header className="fixed w-full z-10">
+    <header className="fixed w-full z-30">
       <section>
-        {userPage && <AnnouncementBanner shrink={shrink} />}
+        <AnnouncementBanner shrink={shrink} />
         <div
           className={`transition-all select-none w-full bg-[var(--primary)] flex items-center justify-around border-b border-gray-400 ${
             shrink ? "max-h-16" : "max-h-24"
@@ -110,33 +130,40 @@ const Header: React.FC<HeaderProps> = ({ userPage }) => {
             searchInputRef={searchInputRef}
           />
           <div>
-            <ul
-              className={`flex justify-around items-center transition-all ${
-                searchOpen ? "scale-0" : "scale-100"
-              }`}
-            >
-              <li className="relative right-2">
-                <ProfileMenu
-                  session={session}
-                  showProfileSettings={showProfileSettings}
-                  setShowProfileSettings={setShowProfileSettings}
-                  profileContainerRef={profileContainerRef}
-                />
-              </li>
-              {session?.user.role != "admin" && (
-                <li>
-                  <button
-                    onClick={() => setShowCart(true)}
-                    className="md:me-5 cursor-pointer relative shadow-md rounded-md p-2"
-                  >
-                    <p className="absolute top-0 right-0 bg-black rounded-full text-[var(--primary)] p-1 text-sm/[8px]">
-                      0
-                    </p>
-                    <IoCartOutline className="text-4xl" />
-                  </button>
+            {status != "loading" ? (
+              <ul
+                className={`flex justify-around items-center transition-all ${
+                  searchOpen ? "scale-0" : "scale-100"
+                }`}
+              >
+                <li className="relative right-2">
+                  <ProfileMenu
+                    session={session}
+                    showProfileSettings={showProfileSettings}
+                    setShowProfileSettings={setShowProfileSettings}
+                    profileContainerRef={profileContainerRef}
+                  />
                 </li>
-              )}
-            </ul>
+                {session?.user.role != "admin" && (
+                  <li>
+                    <button
+                      onClick={() => setShowCart(true)}
+                      className="md:me-5 cursor-pointer relative shadow-md rounded-md p-2"
+                    >
+                      <p className="absolute top-0 right-0 bg-black rounded-full text-[var(--primary)] p-1 text-sm/[8px]">
+                        {cartItemCount}
+                      </p>
+                      <IoCartOutline className="text-4xl" />
+                    </button>
+                  </li>
+                )}
+              </ul>
+            ) : (
+              <div className="flex justify-around items-center gap-2">
+                <Skeleton className="bg-[var(--primary)] text-[var(-- )] shadow-md rounded-md p-2 min-w-[3.3em] min-h-[3.3em] flex justify-center items-center" />
+                <Skeleton className="bg-[var(--primary)] text-[var(-- )] shadow-md rounded-md p-2 min-w-[3.3em] min-h-[3.3em] flex justify-center items-center" />
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -145,13 +172,9 @@ const Header: React.FC<HeaderProps> = ({ userPage }) => {
         setShowCart={setShowCart}
         cartRef={cartRef}
       />
-      {userPage && (
-        <section className="border-b border-gray-400 shadow-md text-sx">
-          <NavigationMenu menuItems={menuItems} allowedUrls={allowedUrls} />
-        </section>
-      )}
+      <section className="border-b text-nowrap border-gray-400 shadow-md text-sx">
+        <NavigationMenu menuItems={menuItems} allowedUrls={allowedUrls} />
+      </section>
     </header>
   );
-};
-
-export default Header;
+}
