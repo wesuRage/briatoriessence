@@ -23,6 +23,7 @@ model User {
   cart        Cart[]
   cpf         String?
   address     Address?
+  telefone    String?
   pedidos     Pedido[]
 }
 
@@ -78,7 +79,6 @@ model Pedido {
   user              User             @relation(fields: [userId], references: [id])
   userId            String           @db.ObjectId
   produtos          PedidoProduto[]
-  valorRecebido     Float
   frete             Float
   valorFrete        Float
   tipoFrete         String
@@ -86,6 +86,7 @@ model Pedido {
   valorTotal        Float
   nomeDestinatario  String
   meioPagamento     String
+  pagamentoId       Int
   status            String           @default("processando")
   codigoRastreio    String?
   createdAt         DateTime         @default(now())
