@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import axios from "axios";
 import Main from "@/components/Main";
 import ProdutoCard from "@/components/ProdutoCard";
-import Link from "next/link";
+import axios from "axios";
 import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
 interface Produto {
-  id: number;
+  id: string;
   nome: string;
   precoOrg: number;
   precoDes: number;
@@ -19,6 +19,7 @@ interface Produto {
 
 export default function Dashboard() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [pedidos, setPedidos] = useState<any>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeButton, setActiveButton] = useState<string | null>(null);
   const { data: session } = useSession();
@@ -32,6 +33,18 @@ export default function Dashboard() {
       })
       .catch((error) => {
         console.error("Erro ao buscar produtos:", error);
+        setLoading(false);
+      });
+
+    axios
+      .get("/api/pedidos")
+      .then((response) => {
+        setPedidos(response.data.data);
+        console.log(pedidos);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Erro ao buscar pedidos:", error);
         setLoading(false);
       });
   }, []);
@@ -67,9 +80,7 @@ export default function Dashboard() {
           <div className="w-full max-w-[680px]">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-2xl">
-                  Pedidos - 0 pendentes
-                </h2>
+                <h2 className="text-2xl">Pedidos - 0 pendentes</h2>
               </div>
             </div>
           </div>
