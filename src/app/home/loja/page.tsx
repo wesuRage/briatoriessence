@@ -145,7 +145,7 @@ function ProdutosList() {
       )}
       {filteredProdutos.length > 0 ? (
         <section className="container mx-auto mt-4 flex flex-col items-center w-full md:max-w-[1280px]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 w-full">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4 w-full">
             {filteredProdutos.map((produto: Produto, index: number) => (
               <ProdutoCard
                 key={index}

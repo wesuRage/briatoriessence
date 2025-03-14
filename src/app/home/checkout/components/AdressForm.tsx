@@ -16,7 +16,7 @@ const addressSchema = z.object({
   nome: z.string().min(2, "Nome é obrigatório"),
   telefone: z
     .string()
-    .min(14, "Telefone é obrigatória")
+    .min(14, "Telefone é obrigatório")
     .max(15, "Telefone inválido"),
   cep: z
     .string()
@@ -26,7 +26,7 @@ const addressSchema = z.object({
   numero: z.string().min(1, "Número é obrigatório"),
   complemento: z.string().optional(),
   bairro: z.string().min(1, "Bairro é obrigatório"),
-  estado_cidade: z.string().min(1, "Cidade é obrigatória"),
+  estado_cidade: z.string().min(1, "Cidade e Estado são obrigatórios"),
   frete: z.string().refine(
     (value) => value !== "" && !isNaN(Number(value)) && Number(value) >= 0,
     { message: "Selecione uma opção de frete" } // Mensagem de erro personalizada
