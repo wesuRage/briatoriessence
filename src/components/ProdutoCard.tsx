@@ -10,6 +10,7 @@ import { IoCartOutline } from "react-icons/io5";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FaCheck } from "react-icons/fa";
+import { useCart } from "./contexts/CartContext";
 
 type ProdutoProps = {
   produto?: {
@@ -38,7 +39,8 @@ export default function ProdutoCard({
   const transitionDuration = 300;
   const { data: session } = useSession();
   const router = useRouter();
-
+  const { setCartItemCount } = useCart()
+  
   if (loading) {
     return (
       <div className="bg-white border-2 border-gray-300 rounded-md shadow-md p-4 min-w-[300px]">
@@ -94,8 +96,14 @@ export default function ProdutoCard({
         const data = await response.json();
 
         if (data.status === "success") {
-          console.log("Produto adicionado ao carrinho");
           setAddedToCart(true);
+          const response = await fetch("/api/usuario/carrinho", {
+            method: "get",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          setCartItemCount((await response.json()).data.products.length)
           setTimeout(() => {
             setAddedToCart(false);
           }, 3000);
@@ -276,3 +284,4 @@ export default function ProdutoCard({
     </section>
   );
 }
+
