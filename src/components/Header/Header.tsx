@@ -19,7 +19,7 @@ const menuItems = [
   { href: "/home/loja/decants", label: "Decants" },
   { href: "/home/loja/perfumes-arabes", label: "Árabes" },
   { href: "/home/loja/hidratantes", label: "Hidratantes" },
-  { href: "/home/loja/victoria's-secret", label: "Victoria's Secret" },
+  { href: "/home/loja/victorias-secret", label: "Victoria's Secret" },
 ];
 
 const allowedUrls = [
@@ -29,7 +29,7 @@ const allowedUrls = [
   "/home/loja/decants",
   "/home/loja/perfumes-arabes",
   "/home/loja/hidratantes",
-  "/home/loja/victoria's-secret",
+  "/home/loja/victorias-secret",
   "/home/dashboard/",
   "/home/minha-conta",
   "/autenticar/login",
