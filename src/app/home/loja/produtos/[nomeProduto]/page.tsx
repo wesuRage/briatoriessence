@@ -15,6 +15,7 @@ import { FaTruckArrowRight } from "react-icons/fa6";
 import { FaCheck, FaHouseUser, FaMailBulk } from "react-icons/fa";
 import ProdutoCard from "@/components/ProdutoCard";
 import { useRouter } from "next/navigation";
+import { useCart } from "@/components/contexts/CartContext";
 
 interface Produto {
   id: string;
@@ -60,6 +61,7 @@ export default function Produto({
   const [relatedProdutos, setRelatedProdutos] = useState<Produto[]>([]);
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { setCartItemCount } = useCart();
 
   useEffect(() => {
     params.then((resolvedParams) => {
@@ -178,8 +180,14 @@ export default function Produto({
         const data = await response.json();
 
         if (data.status === "success") {
-          console.log("Produto adicionado ao carrinho");
           setAddedToCart(true);
+          const response = await fetch("/api/usuario/carrinho", {
+            method: "get",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          setCartItemCount((await response.json()).data.products.length)
           setTimeout(() => {
             setAddedToCart(false);
           }, 3000);
