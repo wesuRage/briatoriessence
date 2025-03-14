@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CartProvider } from "@/components/contexts/CartContext";
 
 export const metadata: Metadata = {
   title: "Briatori Essense - Perfumaria Online",
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="pt-br" suppressHydrationWarning={true}>
       <body className="antialiased">
+        <CartProvider>
           {children}
+        </CartProvider>
       </body>
     </html>
   );
