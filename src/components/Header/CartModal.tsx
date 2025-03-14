@@ -9,11 +9,13 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FaTrashAlt } from "react-icons/fa";
+import { useCart } from "../contexts/CartContext";
 
 interface CartModalProps {
   showCart: boolean;
   setShowCart: (show: boolean) => void;
   cartRef: React.RefObject<HTMLDivElement | null>;
+  fetchCartItemCount: () => void; // Adiciona a função como prop
 }
 
 interface Produto {
@@ -33,10 +35,13 @@ const CartModal: React.FC<CartModalProps> = ({
   showCart,
   setShowCart,
   cartRef,
+  fetchCartItemCount, // Recebe a função como prop
 }) => {
   const { data: session } = useSession();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const { cartItemCount, setCartItemCount } = useCart();
+
   const router = useRouter();
 
   useEffect(() => {
@@ -59,7 +64,7 @@ const CartModal: React.FC<CartModalProps> = ({
     };
 
     fetchCart();
-  }, [session]);
+  }, [cartItemCount]);
 
   const updateQuantity = async (produtoId: string, quantidade: number) => {
     try {
@@ -75,6 +80,8 @@ const CartModal: React.FC<CartModalProps> = ({
 
       if (data.status === "success") {
         setCart(data.data);
+        fetchCartItemCount();
+        setCartItemCount(data.data.products.length);
       } else {
         console.error("Erro ao atualizar quantidade:", data.data);
       }
@@ -107,6 +114,8 @@ const CartModal: React.FC<CartModalProps> = ({
 
       if (data.status === "success") {
         setCart(data.data);
+        fetchCartItemCount();
+        setCartItemCount(data.data.products.length);
       } else {
         console.error("Erro ao remover produto do carrinho:", data.data);
       }
@@ -115,9 +124,15 @@ const CartModal: React.FC<CartModalProps> = ({
     }
   };
 
-  const calculateTotal = (products: { produto: Produto; quantidade: number }[]) => {
+  const calculateTotal = (
+    products: { produto: Produto; quantidade: number }[]
+  ) => {
     return products.reduce((acc, { produto, quantidade }) => {
-      return acc + (produto.precoDes > 0 ? produto.precoDes : produto.precoOrg) * quantidade;
+      return (
+        acc +
+        (produto.precoDes > 0 ? produto.precoDes : produto.precoOrg) *
+          quantidade
+      );
     }, 0);
   };
 
@@ -143,12 +158,9 @@ const CartModal: React.FC<CartModalProps> = ({
             </button>
           </header>
 
-          <section className="flex flex-1 flex-col p-4 overflow-y-auto">
-            {loading ? (
-              <div className="flex flex-1 items-center justify-center">
-                <p className="text-lg text-black">Carregando...</p>
-              </div>
-            ) : cart && cart.products && cart.products.length > 0 ? (
+          {/* Itens do carrinho - área rolável */}
+          <section className="flex-1 p-4 overflow-y-auto">
+          {cart && cart.products && cart.products.length > 0 ? (
               <div className="flex flex-col space-y-4">
                 {cart.products.map(({ produto, quantidade }) => (
                   <div key={produto.id} className="flex items-center space-x-4">
@@ -163,12 +175,75 @@ const CartModal: React.FC<CartModalProps> = ({
                       <h2 className="text-lg font-semibold text-black">
                         {produto.nome}
                       </h2>
-                      <p className="text-sm text-gray-500">
-                        R$
-                        {produto.precoDes > 0
-                          ? produto.precoDes.toFixed(2)
-                          : produto.precoOrg.toFixed(2)}
-                      </p>
+                      {produto.precoDes > 0 ? (
+                        <section>
+                          <div className="flex gap-2 text-gray-400 text-sm md:text-base">
+                            de{" "}
+                            <p className="line-through">
+                              R$
+                              {produto.precoOrg
+                                .toFixed(2)
+                                .toString()
+                                .replace(".", ",")}
+                            </p>
+                            por
+                          </div>
+                          <div>
+                            <p className="text-black text-lg md:text-xl inline-block">
+                              <span className="bg-[var(--primary)] rounded-md">
+                                R$
+                                {(
+                                  produto.precoDes -
+                                  (produto.precoDes * 5) / 100
+                                )
+                                  .toFixed(2)
+                                  .toString()
+                                  .replace(".", ",")}
+                              </span>
+                              <span className="ms-2 text-sm md:text-md text-gray-500 italic">
+                                NO PIX
+                              </span>
+                            </p>
+                            <p className="italic text-sm md:text-base">
+                              ou{" "}
+                              <span className="underline">
+                                R$
+                                {produto.precoDes
+                                  .toFixed(2)
+                                  .toString()
+                                  .replace(".", ",")}
+                              </span>{" "}
+                              no cartão
+                            </p>
+                          </div>
+                        </section>
+                      ) : (
+                        <div>
+                          <p className="text-black text-lg md:text-xl inline-flex items-center">
+                            <span className="bg-[var(--primary)] rounded-md">
+                              R$
+                              {(produto.precoOrg - (produto.precoOrg * 5) / 100)
+                                .toFixed(2)
+                                .toString()
+                                .replace(".", ",")}
+                            </span>
+                            <span className="ms-2 text-sm md:text-md text-gray-500 italic">
+                              NO PIX
+                            </span>
+                          </p>
+                          <p className="italic text-sm md:text-base">
+                            ou{" "}
+                            <span className="underline">
+                              R$
+                              {produto.precoOrg
+                                .toFixed(2)
+                                .toString()
+                                .replace(".", ",")}
+                            </span>{" "}
+                            no cartão
+                          </p>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <h3>Quantidade:</h3>
                         <div className="flex items-center space-x-2 w-1/2">
@@ -190,33 +265,26 @@ const CartModal: React.FC<CartModalProps> = ({
                             +
                           </button>
                         </div>
-                        <button className="transition-colors duration-200 p-2 text-xl rounded-md cursor-pointer hover:bg-red-500 text-red-500 hover:text-white border border-red-500" onClick={() => handleRemove(produto.id)}>
+                        <button
+                          onClick={() => handleRemove(produto.id)}
+                          className="transition-colors duration-200 p-2 text-xl rounded-md cursor-pointer hover:bg-red-500 text-red-500 hover:text-white border border-red-500"
+                        >
                           <FaTrashAlt />
                         </button>
                       </div>
                     </div>
                   </div>
                 ))}
-                <div className="flex justify-between items-center mt-4">
-                  <p className="text-lg font-semibold text-black">Total:</p>
-                  <p className="text-lg font-semibold text-black">
-                    R${calculateTotal(cart.products).toFixed(2)}
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowCart(false);
-                    router.push("/home/checkout");
-                  }}
-                  className="bg-black cursor-pointer text-white p-2 rounded-md shadow-md mt-4"
-                >
-                  Ir para o checkout
-                </button>
               </div>
             ) : (
-              <div className="flex flex-1 flex-col items-center justify-center space-y-4">
+              <div className="flex flex-1 flex-col h-full items-center justify-center space-y-4">
                 <IoCartOutline className="text-8xl text-[var(--primary)]" />
-                <p className="text-lg text-black">Seu carrinho está vazio</p>
+                <div className="text-center">
+                  <p className="text-lg text-black">Seu carrinho está vazio.</p>
+                  <p className="text-lg text-black">
+                    Mas você ainda pode navegar pela loja!
+                  </p>
+                </div>
                 <Link
                   href="/home/loja"
                   onClick={() => setShowCart(false)}
@@ -227,6 +295,50 @@ const CartModal: React.FC<CartModalProps> = ({
               </div>
             )}
           </section>
+
+          {cart?.products && cart.products.length > 0 && (
+            <div
+              id="total"
+              className="w-full p-4 border-t border-gray-200 bg-white"
+            >
+              <div className="flex justify-between items-center">
+                <p className="text-lg font-semibold text-black">Subtotal:</p>
+                <div className="text-center">
+                  <p className="text-md font-semibold text-black">
+                    R$
+                    {calculateTotal(cart?.products || [])
+                      .toFixed(2)
+                      .toString()
+                      .replace(".", ",")}{" "}
+                    no cartão
+                  </p>
+                  <span className="italic">OU</span>
+                  <p className="text-lg font-semibold text-black">
+                    <span className="p-1 bg-[var(--primary)] rounded-md">
+                      R$
+                      {(
+                        calculateTotal(cart?.products || []) -
+                        (calculateTotal(cart?.products || []) * 5) / 100
+                      )
+                        .toFixed(2)
+                        .toString()
+                        .replace(".", ",")}
+                    </span>{" "}
+                    no Pix
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCart(false);
+                  router.push("/home/checkout");
+                }}
+                className="bg-black w-full text-center cursor-pointer text-white p-2 rounded-md shadow-md mt-4"
+              >
+                Ir para o checkout
+              </button>
+            </div>
+          )}
         </motion.section>
       )}
     </AnimatePresence>

@@ -10,6 +10,7 @@ import ProfileMenu from "./ProfileMenu";
 import CartModal from "./CartModal";
 import NavigationMenu from "./NavigationMenu";
 import Skeleton from "react-loading-skeleton";
+import { useCart } from "../contexts/CartContext";
 
 const menuItems = [
   { href: "/home#sobre", label: "Sobre" },
@@ -41,10 +42,10 @@ export default function Header() {
   const [showSearch, setShowSearch] = useState(false);
   const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showCart, setShowCart] = useState(false);
-  const [cartItemCount, setCartItemCount] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const profileContainerRef = useRef<HTMLDivElement>(null);
   const cartRef = useRef<HTMLDivElement>(null);
+  const { cartItemCount, setCartItemCount } = useCart();
 
   // Fecha o carrinho ao clicar fora
   useEffect(() => {
@@ -88,27 +89,21 @@ export default function Header() {
     }
   }, [showSearch]);
 
-  useEffect(() => {
-    const fetchCartItemCount = async () => {
-      if (session) {
-        try {
-          const response = await fetch("/api/usuario/carrinho");
-          const data = await response.json();
-          if (data.status === "success" && data.data) {
-            const itemCount = data.data.products.reduce(
-              (acc: number, item: any) => acc + item.quantidade,
-              0
-            );
-            setCartItemCount(itemCount);
-          } else {
-            console.error("Erro ao buscar carrinho:", data.data);
-          }
-        } catch (error) {
-          console.error("Erro ao buscar carrinho:", error);
-        }
+  const fetchCartItemCount = async () => {
+    if (session) {
+      const response = await fetch("/api/usuario/carrinho");
+      const data = await response.json();
+      if (data.status === "success" && data.data) {
+        const itemCount = data.data.products.reduce(
+          (acc: number, item: any) => acc + item.quantidade,
+          0
+        );
+        setCartItemCount(itemCount);
       }
-    };
+    }
+  };
 
+  useEffect(() => {
     fetchCartItemCount();
   }, [session]);
 
@@ -171,6 +166,7 @@ export default function Header() {
         showCart={showCart}
         setShowCart={setShowCart}
         cartRef={cartRef}
+        fetchCartItemCount={fetchCartItemCount}
       />
       <section className="border-b text-nowrap border-gray-400 shadow-md text-sx">
         <NavigationMenu menuItems={menuItems} allowedUrls={allowedUrls} />
