@@ -169,8 +169,10 @@ export default function Billing({
         },
       });
 
-      if (response.data.status === "approved") {
-        await finalizarPedido("cartao", response.data);
+      console.log(await response.data);
+
+      if (await response.data.status === "approved") {
+        await finalizarPedido("cartao", await response.data);
         advanceTo("success");
       }
     } catch (error) {
@@ -197,7 +199,7 @@ export default function Billing({
       });
 
       if (response.data.status === "pendente") {
-        await finalizarPedido("pix", response.data);
+        await finalizarPedido("pix", await response.data);
       }
     } catch (error) {
       console.error("Erro no pagamento PIX:", error);
