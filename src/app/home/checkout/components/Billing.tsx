@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { motion } from "framer-motion";
 import { Session } from "next-auth";
 import { useRouter } from "next/navigation";
@@ -15,8 +15,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CiBarcode } from "react-icons/ci";
-import {initMercadoPago} from "@mercadopago/sdk-react"
-import {createCardToken} from "@mercadopago/sdk-react/esm/coreMethods"
+import { initMercadoPago } from "@mercadopago/sdk-react";
+import { createCardToken } from "@mercadopago/sdk-react/esm/coreMethods";
 
 export default function Billing({
   advanceTo,
@@ -100,8 +100,8 @@ export default function Billing({
   });
 
   useEffect(() => {
-    initMercadoPago(process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!)
-  }, [])
+    initMercadoPago(process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!);
+  }, []);
 
   useEffect(() => {
     if (!pix) return; // Não faz nada se não houver paymentId
@@ -155,24 +155,40 @@ export default function Billing({
         securityCode: data.cvv,
         identificationType: data.tipoDocumento,
         identificationNumber: data.cpf.replace(/\D/g, ""),
-      });      
-
-      const response = await axios.post("/api/mercado-pago/create-checkout", {
-        pedido: pedido,
-        parcelas: data.parcelas,
-        token: cardToken,
-        total: pedido.total,
-        metodo: "credit_card",
-        payer: {
-          email: session?.user?.email,
-          cpf: data.cpf.replace(/\D/g, ""), // Remove formatação
-        },
       });
 
-      console.log(await response.data);
+      console.log(cardToken);
 
-      if (await response.data.status === "approved") {
-        await finalizarPedido("cartao", await response.data);
+      let response: AxiosResponse<any> | null = null;
+      await axios
+        .post("/api/mercado-pago/create-checkout", {
+          pedido: pedido,
+          parcelas: data.parcelas,
+          token: cardToken,
+          total: pedido.total,
+          metodo: "credit_card",
+          payer: {
+            email: session?.user?.email,
+            cpf: data.cpf.replace(/\D/g, ""), // Remove formatação
+          },
+        })
+        .then((res) => {
+          response = res;
+        })
+        .catch((error) => {
+          console.error("Erro no pagamento:", error);
+          alert("Erro ao processar pagamento com cartão");
+        })
+        .finally(() => {
+          setProcessing(false);
+        });
+
+      if (response) {
+        console.log((response as any).data);
+      }
+
+      if ((await (response as any).data.status) === "approved") {
+        await finalizarPedido("cartao", await response!.data);
         advanceTo("success");
       }
     } catch (error) {
@@ -470,10 +486,14 @@ export default function Billing({
             <h3 className="text-lg font-semibold mb-4">
               Pagamento com Cartão de Crédito ou Débito
             </h3>
-            <form id="form-checkout" onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmit(processarPagamentoCartao)();
-            }} className="space-y-4">
+            <form
+              id="form-checkout"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(processarPagamentoCartao)();
+              }}
+              className="space-y-4"
+            >
               {/* Número do Cartão */}
               <select
                 id="form-checkout__issuer"
