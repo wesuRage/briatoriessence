@@ -146,8 +146,9 @@ export default function Billing({
     window.onload = () => {
       function checkMp() {
         // @ts-ignore
-        const mp = window.MercadoPago(
-          process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
+        const mp = MercadoPago(
+          process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!,
+          { locale: "pt-BR" }
         );
         setMercadoPago(mp);
       }
