@@ -58,7 +58,7 @@ export async function POST(req: Request) {
           federal_unit: usuario?.address?.estado,
         },
         phone: { // Telefone do comprador (se disponível)
-          area_code: usuario?.telefone?.replace(/\D/g, "").substring(0, 2),
+          area_code: usuario?.telefone?.substring(0, 2),
           number: usuario?.telefone?.substring(2),
         },
       },
