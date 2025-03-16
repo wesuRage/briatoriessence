@@ -226,28 +226,32 @@ export default function Billing({
             console.log("penis mole", issuerId, token);
 
             // Envia os dados para a API
-            axios.post(
-              "/api/mercado-pago/create-checkout",
-              {
-                pedido: pedido,
-                parcelas: data.parcelas,
-                token: token,
-                total: pedido.total,
-                metodo: paymentMethodId,
-                issuer_id: issuerId, // Envia o issuer_id
-                payer: {
-                  email: session?.user?.email,
-                  cpf: data.cpf.replace(/\D/g, ""), // Remove formatação
+            axios
+              .post(
+                "/api/mercado-pago/create-checkout",
+                {
+                  pedido: pedido,
+                  parcelas: data.parcelas,
+                  token: token,
+                  total: pedido.total,
+                  metodo: paymentMethodId,
+                  issuer_id: issuerId, // Envia o issuer_id
+                  payer: {
+                    email: session?.user?.email,
+                    cpf: data.cpf.replace(/\D/g, ""), // Remove formatação
+                  },
                 },
-              },
-              { headers: { "Content-Type": "application/json" } }
-            ).then(async (response) => {
-              if (response.data.status === "pago") {
-                await finalizarPedido("cartao", response.data);
-                advanceTo("success");
-              }
-            });
-
+                { headers: { "Content-Type": "application/json" } }
+              )
+              .then(async (response) => {
+                if (response.data.status === "pago") {
+                  await finalizarPedido("cartao", response.data);
+                  advanceTo("success");
+                }
+              });
+          },
+          onValidityChange: (error: any, field: any) => {
+            console.log("onValidityChange", error, field);
           },
         },
       });
