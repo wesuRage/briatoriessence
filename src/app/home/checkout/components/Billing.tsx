@@ -209,7 +209,7 @@ export default function Billing({
               return console.warn("Form Mounted handling error: ", error);
             console.log("Form mounted");
           },
-          onSubmit: async (event: any) => {
+          onSubmit: (event: any) => {
             event.preventDefault();
 
             const {
@@ -226,7 +226,7 @@ export default function Billing({
             console.log("penis mole", issuerId, token);
 
             // Envia os dados para a API
-            const response = await axios.post(
+            axios.post(
               "/api/mercado-pago/create-checkout",
               {
                 pedido: pedido,
@@ -241,12 +241,13 @@ export default function Billing({
                 },
               },
               { headers: { "Content-Type": "application/json" } }
-            );
+            ).then(async (response) => {
+              if (response.data.status === "pago") {
+                await finalizarPedido("cartao", response.data);
+                advanceTo("success");
+              }
+            });
 
-            if (response.data.status === "pago") {
-              await finalizarPedido("cartao", response.data);
-              advanceTo("success");
-            }
           },
         },
       });
