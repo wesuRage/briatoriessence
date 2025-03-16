@@ -4,19 +4,25 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   try {
     const { cep, produtos } = await req.json();
-  
-    if (!produtos.products || !Array.isArray(produtos.products) || produtos.products.length === 0) {
-      return NextResponse.json({ status: "error", message: "Nenhum produto informado." }, { status: 400 });
+
+    if (!produtos || !Array.isArray(produtos) || produtos.length === 0) {
+      return NextResponse.json(
+        { status: "error", message: "Nenhum produto informado." },
+        { status: 400 }
+      );
     }
-    
+
     let volumeTotal = 0;
     let pesoTotal = 0;
-    
+
     // Calcula o volume total e o peso total
-    for (const produto of produtos.products) {
+    for (const produto of produtos) {
       const { altura, largura, comprimento, peso } = produto.produto;
       if (!altura || !largura || !comprimento || !peso) {
-        return NextResponse.json({ status: "error", message: "Dados do produto incompletos." }, { status: 400 });
+        return NextResponse.json(
+          { status: "error", message: "Dados do produto incompletos." },
+          { status: 400 }
+        );
       }
 
       const volume = altura * largura * comprimento * produto.quantidade;
@@ -65,7 +71,9 @@ export async function POST(req: NextRequest) {
     );
 
     // Consulta de CEP
-    const responseCep = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
+    const responseCep = await axios.get(
+      `https://viacep.com.br/ws/${cep}/json/`
+    );
 
     return NextResponse.json({
       status: "success",
