@@ -143,25 +143,14 @@ export default function Billing({
   }, []);
 
   useEffect(() => {
-    window.onload = () => {
-      function checkMp() {
-        // @ts-ignore
-        const mp = MercadoPago(
-          process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!,
-          { locale: "pt-BR" }
-        );
-        setMercadoPago(mp);
-      }
+    setTimeout(() => {
+      // @ts-ignore
+      const mp = new MercadoPago(
+        process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
+      );
 
-      checkMp();
-
-      setTimeout(() => {
-        // @ts-ignore
-        if (!window.MercadoPago.initialized) {
-          checkMp();
-        }
-      }, 1000);
-    };
+      setMercadoPago(mp);
+    }, 1000);
   }, []);
 
   const loadForm = async () => {
@@ -213,16 +202,7 @@ export default function Billing({
         onFormMounted: (error: any) => {
           if (error) console.error("Form error:", error);
         },
-        onCardTokenReceived: (error: any, token: any) => {
-          if (error) {
-            console.error("Token error:", error);
-            alert("Erro ao processar cartão");
-          } else {
-            setToken(token);
-            console.log("Token gerado:", token);
-          }
-        },
-        onSubmit: (event: any) => {
+        onSubmit:  (event: any) => {
           event.preventDefault();
           setProcessing(true);
 
