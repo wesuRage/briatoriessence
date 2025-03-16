@@ -127,10 +127,7 @@ export default function Produto({
           cep,
           produtos: [
             {
-              peso: produto.peso,
-              altura: produto.altura,
-              largura: produto.largura,
-              comprimento: produto.comprimento,
+              produto,
               quantidade: 1,
             },
           ],
