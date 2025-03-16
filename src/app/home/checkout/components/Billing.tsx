@@ -143,7 +143,7 @@ export default function Billing({
       setProcessing(true);
 
       // @ts-ignore
-      const mercadopago = new MercadoPago(
+      const mercadopago = window.MercadoPago(
         process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
       );
 
