@@ -157,14 +157,12 @@ export default function Billing({
         identificationNumber: data.cpf.replace(/\D/g, ""),
       });
 
-      console.log(cardToken);
-
       let response: AxiosResponse<any> | null = null;
       await axios
         .post("/api/mercado-pago/create-checkout", {
           pedido: pedido,
           parcelas: data.parcelas,
-          token: cardToken,
+          token: cardToken!.id,
           total: pedido.total,
           metodo: "credit_card",
           payer: {
