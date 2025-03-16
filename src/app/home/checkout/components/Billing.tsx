@@ -317,13 +317,15 @@ export default function Billing({
   };
 
   useEffect(() => {
+    if (!watch("numeroCartao")) return;
+    
     const bandeira = identificarBandeira(watch("numeroCartao"));
     setIssuer(bandeira);
   }, [watch("numeroCartao")]);
 
   function identificarBandeira(numeroCartao: string): string | null {
     // Remove espaços e caracteres não numéricos
-    const numeroLimpo = numeroCartao.replace(/\D/g, "");
+    const numeroLimpo = numeroCartao?.replace(/\D/g, "");
   
     // Visa
     if (/^4/.test(numeroLimpo)) {
