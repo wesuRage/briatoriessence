@@ -1,3 +1,5 @@
+"use client";
+
 import Main from "@/components/Main";
 import axios from "axios";
 import { useEffect, useState } from "react";
