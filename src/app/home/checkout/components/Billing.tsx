@@ -182,7 +182,7 @@ export default function Billing({
         });
 
       if (response) {
-        console.log((response as any).data);
+        console.log(response);
       }
 
       if ((await (response as any).data.status) === "approved") {
