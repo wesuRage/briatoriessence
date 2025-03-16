@@ -64,7 +64,6 @@ export async function POST(req: NextRequest) {
             preco: p.produto.precoDes || p.produto.precoOrg,
           })),
         },
-        frete,
         tipoFrete,
         valorTotal: total,
         valorFrete: frete,
