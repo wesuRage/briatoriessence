@@ -8,7 +8,6 @@ const client = new MercadoPagoConfig({
 });
 
 export async function POST(req: Request) {
-  try {
     const { pedido, token, total, metodo, payer, userid, parcelas, device_id, issuer_id } = await req.json();
 
     // Validação básica dos dados
@@ -143,11 +142,4 @@ export async function POST(req: Request) {
     };
 
     return NextResponse.json(responseData, { status: 200 });
-  } catch (error) {
-    console.error("Erro no processamento do pagamento:", error);
-    return NextResponse.json(
-      { error: "DEU ERRO", data: error },
-      { status: 500 }
-    );
-  }
 }
