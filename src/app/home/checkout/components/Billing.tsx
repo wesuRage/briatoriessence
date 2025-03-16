@@ -142,96 +142,35 @@ export default function Billing({
     try {
       setProcessing(true);
 
-      // @ts-ignore
-      const mercadopago = new MercadoPago(
-        process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
-      );
-
-      const form = {
-        id: "form-checkout",
-        cardholderName: {
-          id: "form-checkout__cardholderName",
-          placeholder: "Holder name",
-        },
-        cardholderEmail: {
-          id: "form-checkout__cardholderEmail",
-          placeholder: "E-mail",
-        },
-        cardNumber: {
-          id: "form-checkout__cardNumber",
-          placeholder: "Card number",
-          style: {
-            fontSize: "1rem",
-          },
-        },
-        expirationDate: {
-          id: "form-checkout__expirationDate",
-          placeholder: "MM/YYYY",
-          style: {
-            fontSize: "1rem",
-          },
-        },
-        securityCode: {
-          id: "form-checkout__securityCode",
-          placeholder: "Security code",
-          style: {
-            fontSize: "1rem",
-          },
-        },
-        installments: {
-          id: "form-checkout__installments",
-          placeholder: "Installments",
-        },
-        identificationType: {
-          id: "form-checkout__identificationType",
-        },
-        identificationNumber: {
-          id: "form-checkout__identificationNumber",
-          placeholder: "Identification number",
-        },
-        issuer: {
-          id: "form-checkout__issuer",
-          placeholder: "Issuer",
-        },
+      const formData = {
+        cardNumber: data.numeroCartao.replace(/\s/g, ""),
+        securityCode: data.cvv,
+        cardExpirationMonth: data.validade.split("/")[0],
+        cardExpirationYear: data.validade.split("/")[1],
+        cardholderName: data.nomeTitular,
+        identificationType: data.tipoDocumento,
+        identificationNumber: data.cpf.replace(/\D/g, ""),
       };
-      console.log(
-        data.issuer,
-        data.cpf,
-        data.cvv,
-        data.email,
-        data.nomeTitular,
-        data.numeroCartao,
-        data.parcelas,
-        data.validade,
-        data.tipoDocumento
-      );
 
-      const cardForm = mercadopago.cardForm({
-        amount: String(pedido.total),
-        form,
-        callbacks: {
-          onFormMounted: (error: any) => {
-            if (error)
-              return console.warn("Form Mounted handling error: ", error);
-            console.log("Form mounted");
-          },
-          onSubmit: async (event: any) => {
-            event.preventDefault();
+      // @ts-ignore
+      window.Mercadopago.createToken(formData, (status, response) => {
+        if (status !== 200 && status !== 201) {
+          alert("Verifique os dados do cartão!");
+          setProcessing(false);
+          return;
+        }
 
-            const { paymentMethodId, issuerId, token } =
-              cardForm.getCardFormData();
-
-            // Envia os dados para a API
-            await axios
+        // Envia os dados para a API
+        axios
               .post(
                 "/api/mercado-pago/create-checkout",
                 {
                   pedido: pedido,
                   parcelas: data.parcelas,
-                  token: token,
+                  token: response.id,
                   total: pedido.total,
-                  metodo: paymentMethodId,
-                  issuer_id: issuerId,
+                  metodo: response.payment_method_id,
+                  issuer_id: response.issuer_id,
                   payer: {
                     email: session?.user?.email,
                     cpf: data.cpf,
@@ -245,12 +184,7 @@ export default function Billing({
                   advanceTo("success");
                 }
               });
-          },
-          onError: (error: any) => {
-            console.error("Erro no cardForm:", error);
-            alert("Erro ao processar o cartão: " + error);
-          },
-        },
+
       });
     } catch (error) {
       console.log("Erro no pagamento com cartão:", error);
@@ -259,6 +193,7 @@ export default function Billing({
       setProcessing(false);
     }
   };
+
 
   const processarPagamentoPix = async (data: BillingPixData) => {
     setProcessing(true);
