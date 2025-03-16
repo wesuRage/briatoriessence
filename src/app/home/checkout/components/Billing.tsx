@@ -199,7 +199,7 @@ export default function Billing({
     };
 
     const cardForm = mercadopago.cardForm({
-        amount: pedido.total,
+        amount: String(pedido.total),
         iframe: true,
         form,
         callbacks: {
