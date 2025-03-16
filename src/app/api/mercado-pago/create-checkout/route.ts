@@ -146,7 +146,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Erro no processamento do pagamento:", error);
     return NextResponse.json(
-      { error },
+      { error: "DEU ERRO", data: error },
       { status: 500 }
     );
   }
