@@ -158,6 +158,10 @@ export default function Billing({
         identificationNumber: data.cpf.replace(/\D/g, ""),
       });
 
+      console.log(cardToken);
+
+      return 
+
       let response: AxiosResponse<any> | null = null;
       await axios
         .post("/api/mercado-pago/create-checkout", {
@@ -166,7 +170,7 @@ export default function Billing({
           token: cardToken!.id,
           total: pedido.total,
           metodo: "credit_card",
-          issuer_id: issuer,
+          issuer_id: cardToken?.id,
           payer: {
             email: session?.user?.email,
             cpf: data.cpf.replace(/\D/g, ""), // Remove formatação
@@ -315,46 +319,6 @@ export default function Billing({
     v = v.replace(/(\d{2})(\d{1,2})$/, "$1/$2");
     return v;
   };
-
-  useEffect(() => {
-    if (!watch("numeroCartao")) return;
-    
-    const bandeira = identificarBandeira(watch("numeroCartao"));
-    setIssuer(bandeira);
-  }, [watch("numeroCartao")]);
-
-  function identificarBandeira(numeroCartao: string): string | null {
-    // Remove espaços e caracteres não numéricos
-    const numeroLimpo = numeroCartao?.replace(/\D/g, "");
-  
-    // Visa
-    if (/^4/.test(numeroLimpo)) {
-      return "visa";
-    }
-  
-    // Mastercard
-    if (/^(5[1-5]|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)/.test(numeroLimpo)) {
-      return "mastercard";
-    }
-  
-    // American Express
-    if (/^(34|37)/.test(numeroLimpo)) {
-      return "amex";
-    }
-  
-    // Diners Club
-    if (/^(36|38|30[0-5]|3095)/.test(numeroLimpo)) {
-      return "diners";
-    }
-  
-    // Discover
-    if (/^(6011|64[4-9]|65|622(12[6-9]|1[3-9][0-9]|[2-8][0-9]{2}|9[01][0-9]|92[0-5]))/.test(numeroLimpo)) {
-      return "discover";
-    }
-  
-    // Se não corresponder a nenhuma bandeira
-    return null;
-  }
 
   if (loading || !pedido)
     return <div className="text-center p-8">Carregando...</div>;
