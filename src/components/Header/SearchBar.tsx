@@ -186,12 +186,12 @@ function SearchBarContent({
       )}
       <CiSearch
         id="mobile"
-        className="text-4xl md:hidden block w-[3.4rem] h-[3.4rem] cursor-pointer rounded-md shadow-md ms-2"
+        className="p-2 text-4xl md:hidden block w-[3.4rem] h-[3.4rem] cursor-pointer rounded-md shadow-md ms-2"
         onClick={handleSearchMobile}
       />
       <CiSearch
         onClick={handleSearch}
-        className="text-4xl w-[3.4rem] h-[3.3rem] hidden md:block cursor-pointer rounded-md shadow-md ms-2"
+        className="p-2 text-4xl w-[3.4rem] h-[3.3rem] hidden md:block cursor-pointer rounded-md shadow-md ms-2"
       />
       {isFocused && results.length > 0 && (
         <div

@@ -42,7 +42,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
             height={35}
             src={session?.user?.image!}
             alt={session?.user?.name!}
-            className="rounded-full border-2 border-black shadow-md"
+            className="rounded-full border border-black shadow-md"
           />
         </div>
         <div className="min-w-[150px]">
