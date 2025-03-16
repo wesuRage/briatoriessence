@@ -1,8 +1,29 @@
-// API /api/pedidos (POST)
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../api/auth/[...nextauth]/route";
 import prisma from "../../../../prisma";
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const { status, payment_id } = await req.json();
+
+    const pedido = await prisma.pedido.update({
+      where: { pagamentoId: Number(payment_id) },
+      data: { status },
+    });
+
+    return NextResponse.json(
+      { status: "Sucesso ao atualizar pedido", data: pedido },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { error: "Erro ao atualizar pedido" },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,7 +39,7 @@ export async function POST(req: NextRequest) {
       endereco,
       status,
       meioPagamento,
-      pagamentoId
+      pagamentoId,
     } = await req.json();
 
     const user = await prisma.user.findUnique({
@@ -74,11 +95,56 @@ export async function GET(req: NextRequest) {
     if (!session)
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
-    return NextResponse.json(await prisma.pedido.findMany());
+    const data = await prisma.pedido.findMany();
+
+    return NextResponse.json({status: "success", data});
   } catch (error) {
     console.error(error);
     return NextResponse.json(
       { error: "Erro ao criar pedido" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
+
+    const { id } = await req.json();
+    if (!id) {
+      return NextResponse.json(
+        { error: "ID do pedido é obrigatório" },
+        { status: 400 }
+      );
+    }
+
+    const pedido = await prisma.pedido.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+
+    if (!pedido) {
+      return NextResponse.json(
+        { error: "Pedido não encontrado" },
+        { status: 404 }
+      );
+    }
+
+    if (pedido.user.email !== session.user.email) {
+      return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
+    }
+
+    await prisma.pedido.delete({ where: { id } });
+
+    return NextResponse.json({ message: "Pedido deletado com sucesso" });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { error: "Erro ao deletar pedido" },
       { status: 500 }
     );
   }
