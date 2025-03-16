@@ -563,6 +563,7 @@ export default function Billing({
               <select
                 id="form-checkout__issuer"
                 name="issuer"
+                value={"mastercard"}
                 className="hidden"
               >
                 <option value="mastercard">Mastercard</option>
