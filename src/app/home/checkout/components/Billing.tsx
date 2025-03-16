@@ -686,7 +686,7 @@ export default function Billing({
                     onChange: (e) => {
                       const value = e.target.value
                         .toUpperCase()
-                        .replace(/\d/g, ""); // Converte para maiúsculas e remove números
+                        // .replace(/\d/g, ""); // Converte para maiúsculas e remove números
                       setValue("nomeTitular", value); // Atualiza o valor do campo no formulário
                     },
                   })}
