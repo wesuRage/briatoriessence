@@ -250,9 +250,10 @@ export default function Billing({
                 }
               });
           },
-          onValidityChange: (error: any, field: any) => {
-            console.log("onValidityChange", error, field);
-          },
+          onError: (error: any) => {
+            console.error('Erro no cardForm:', error);
+            alert('Erro ao processar o cartão: ' + error.message);
+          },      
         },
       });
     } catch (error) {
