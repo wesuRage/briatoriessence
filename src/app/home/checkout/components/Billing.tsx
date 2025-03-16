@@ -241,7 +241,7 @@ export default function Billing({
             parcelas: data.parcelas,
             token: cardToken!.id,
             total: pedido.total,
-            metodo: "credit_card",
+            metodo: paymentMethodId,
             issuer_id: issuerId, // Envia o issuer_id
             payer: {
               email: session?.user?.email,
