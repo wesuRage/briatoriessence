@@ -200,6 +200,9 @@ export default function Billing({
         },
       };
 
+      console.log(data.cpf);
+      console.log(data.cpf.replace(/\D/g, ""));
+
       const cardForm = mercadopago.cardForm({
         amount: String(pedido.total),
         form,
