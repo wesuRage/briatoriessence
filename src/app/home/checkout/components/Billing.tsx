@@ -148,13 +148,13 @@ export default function Billing({
 
       // Gera o token através do formulário
       const cardToken = await createCardToken({
-        cardNumber: data.numeroCartao,
+        cardNumber: data.numeroCartao.replace(/\D/g, ""),
         cardholderName: data.nomeTitular,
         cardExpirationMonth: data.validade.split("/")[0],
         cardExpirationYear: `20${data.validade.split("/")[1]}`,
         securityCode: data.cvv,
         identificationType: data.tipoDocumento,
-        identificationNumber: data.cpf,
+        identificationNumber: data.cpf.replace(/\D/g, ""),
       });      
 
       const response = await axios.post("/api/mercado-pago/create-checkout", {
