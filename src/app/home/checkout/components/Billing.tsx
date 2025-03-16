@@ -215,14 +215,14 @@ export default function Billing({
               return console.warn("Form Mounted handling error: ", error);
             console.log("Form mounted");
           },
-          onSubmit: (event: any) => {
+          onSubmit: async (event: any) => {
             event.preventDefault();
 
             const { paymentMethodId, issuerId, token } =
               cardForm.getCardFormData();
 
             // Envia os dados para a API
-            axios
+            await axios
               .post(
                 "/api/mercado-pago/create-checkout",
                 {
@@ -685,7 +685,6 @@ export default function Billing({
                   {...register("nomeTitular", {
                     onChange: (e) => {
                       const value = e.target.value.toUpperCase();
-                      // .replace(/\d/g, ""); // Converte para maiúsculas e remove números
                       setValue("nomeTitular", value); // Atualiza o valor do campo no formulário
                     },
                   })}
