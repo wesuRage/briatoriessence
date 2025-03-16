@@ -224,22 +224,11 @@ export default function Billing({
           // Armazena o issuerId no estado
           setIssuer(issuerId);
     
-          // Gera o token do cartão
-          const cardToken = await createCardToken({
-            cardNumber: data.numeroCartao.replace(/\D/g, ""),
-            cardholderName: data.nomeTitular,
-            cardExpirationMonth: data.validade.split("/")[0],
-            cardExpirationYear: `20${data.validade.split("/")[1]}`,
-            securityCode: data.cvv,
-            identificationType: data.tipoDocumento,
-            identificationNumber: data.cpf.replace(/\D/g, ""),
-          });
-    
           // Envia os dados para a API
           const response = await axios.post("/api/mercado-pago/create-checkout", {
             pedido: pedido,
             parcelas: data.parcelas,
-            token: cardToken!.id,
+            token: token,
             total: pedido.total,
             metodo: paymentMethodId,
             issuer_id: issuerId, // Envia o issuer_id
