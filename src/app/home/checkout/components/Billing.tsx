@@ -193,6 +193,8 @@ export default function Billing({
           placeholder: "Issuer",
         },
       };
+      console.log(data.cpf, data.cvv, data.email, data.nomeTitular, data.numeroCartao, data.parcelas, data.validade, data.tipoDocumento);
+
       const cardForm = mercadopago.cardForm({
         amount: String(pedido.total),
         form,
