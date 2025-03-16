@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "../../globals.css";
 import Main from "@/components/Main";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Briatori Essense - Perfumaria Online",
@@ -12,5 +13,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <Main>{children}</Main>;
+  return (
+    <Main>
+      <Script src="https://sdk.mercadopago.com/js/v2"></Script>
+      {children}
+    </Main>
+  );
 }

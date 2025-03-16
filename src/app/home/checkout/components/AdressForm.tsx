@@ -22,6 +22,10 @@ const addressSchema = z.object({
     .string()
     .min(8, "CEP deve ter no mínimo 8 dígitos")
     .max(9, "CEP inválido"),
+  cpf: z
+    .string()
+    .min(14, "CPF deve ter no mínimo 8 dígitos")
+    .max(14, "CPF inválido"),
   logradouro: z.string().min(1, "Rua é obrigatória"),
   numero: z.string().min(1, "Número é obrigatório"),
   complemento: z.string().optional(),
@@ -44,6 +48,7 @@ export default function AddressForm({
 }) {
   const [frete, setFrete] = useState<any>(null);
   const [error, setError] = useState<string>("");
+  const [data, setData] = useState<any>();
 
   // Configuração do formulário com react-hook-form e zod
   const {
@@ -56,6 +61,19 @@ export default function AddressForm({
   } = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
   });
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+      await axios
+        .get("/api/usuario/address")
+        .then((response) => {
+          setData(response.data.data);
+        })
+        .catch((err) => console.error("Erro no viacep:", err));
+    };
+
+    fetchAddress();
+  }, []);
 
   const cepValue = watch("cep");
   useEffect(() => {
@@ -95,10 +113,11 @@ export default function AddressForm({
         bairro: data.bairro,
         cidade,
         estado,
-        cep: data.cep.replace(/\D/g, ""),
+        telefone: data.telefone,
+        cep: data.cep,
+        cpf: data.cpf,
+        nome: data.nome,
       };
-
-      console.log(post_data);
 
       await axios.post("/api/usuario/address", post_data, {
         headers: { "Content-Type": "application/json" },
@@ -117,7 +136,7 @@ export default function AddressForm({
         endereco: data,
         status: "pendente",
       };
-
+      
       sessionStorage.setItem("pedidoPendente", JSON.stringify(orderData));
 
       advanceTo("billing");
@@ -130,6 +149,32 @@ export default function AddressForm({
   const mascaraTelefone = (event: any) => {
     let input = event.target;
     input.value = phoneMask(input.value);
+  };
+
+  
+  const handleZipCode = (event: any) => {
+    let input = event.target;
+    input.value = zipCodeMask(input.value);
+  };
+  
+  const zipCodeMask = (value: string) => {
+    if (!value) return "";
+    value = value.replace(/\D/g, "");
+    value = value.replace(/(\d{5})(\d)/, "$1-$2");
+    return value;
+  };
+  
+  const mascaraCpf = (event: any) => {
+    let input = event.target;
+    input.value = cpfMask(input.value);
+  };
+
+  const cpfMask = (v: string) => {
+    v = v.replace(/\D/g, "");
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    return v;
   };
 
   const phoneMask = (value: string) => {
@@ -152,7 +197,7 @@ export default function AddressForm({
         "/api/correios/preco-e-prazo",
         {
           cep,
-          produtos,
+          produtos: produtos.products,
         },
         {
           headers: {
@@ -165,6 +210,8 @@ export default function AddressForm({
       setError(err.message || "Erro ao calcular frete");
     }
   };
+
+  if (!data) return <h1>Carregando...</h1>;
 
   return (
     <motion.div
@@ -186,6 +233,7 @@ export default function AddressForm({
             <div className="relative w-full">
               <input
                 id="nome"
+                defaultValue={data?.name ?? ""}
                 {...register("nome", { required: "Nome é obrigatório" })}
                 className={`peer h-10 w-full border rounded-md px-3 py-5 text-sm focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none ${
                   errors.nome ? "border-red-400" : "border-gray-300"
@@ -212,6 +260,7 @@ export default function AddressForm({
               <input
                 id="telefone"
                 type="tel"
+                defaultValue={data?.telefone ?? ""}
                 minLength={14}
                 maxLength={15}
                 {...register("telefone", {
@@ -238,14 +287,48 @@ export default function AddressForm({
               )}
             </div>
           </div>
+
+          {/* CPF */}
+          <div className="relative">
+            <input
+              id="cpf"
+              defaultValue={data?.cpf ?? ""}
+              minLength={14}
+              maxLength={14}
+              {...register("cpf", {
+                required: "CPF é obrigatório",
+                onChange: (e) => mascaraCpf(e),
+              })}
+              className={`peer h-10 w-full border rounded-md px-3 py-5 text-sm focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none ${
+                errors.cpf ? "border-red-400" : "border-gray-300"
+              }`}
+              placeholder=" "
+            />
+            <label
+              htmlFor="cpf"
+              className={`select-none absolute bg-white p-[2px] left-3 transition-all 
+                peer-placeholder-shown:top-[0.45rem] peer-placeholder-shown:text-base 
+                peer-placeholder-shown:text-gray-400 top-[-0.8rem] text-sm 
+                ${errors.cpf ? "text-red-400" : "text-gray-300"} 
+                peer-focus:text-[var(--primary)] peer-focus:top-[-0.8rem] peer-focus:text-sm`}
+            >
+              CPF
+            </label>
+            {errors.cpf && (
+              <span className="text-red-400">{errors.cpf.message}</span>
+            )}
+          </div>
+
           {/* CEP */}
           <div className="relative">
             <input
               id="cep"
+              defaultValue={data?.address?.cep ?? ""}
               minLength={8}
               maxLength={9}
               {...register("cep", {
                 required: "CEP é obrigatório",
+                onChange: (e) => handleZipCode(e)
               })}
               className={`peer h-10 w-full border rounded-md px-3 py-5 text-sm focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none ${
                 errors.cep ? "border-red-400" : "border-gray-300"
@@ -359,6 +442,7 @@ export default function AddressForm({
             <div className="relative w-[30%]">
               <input
                 id="numero"
+                defaultValue={data?.address?.numero ?? ""}
                 {...register("numero")}
                 className={`peer h-10 w-full border rounded-md px-3 py-5 text-sm focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none ${
                   errors.numero ? "border-red-400" : "border-gray-300"
@@ -385,6 +469,7 @@ export default function AddressForm({
           <div className="relative">
             <input
               id="complemento"
+              defaultValue={data?.address?.complemento ?? ""}
               {...register("complemento")}
               className="peer h-10 w-full border rounded-md px-3 py-5 text-sm focus:border-[var(--primary)] 
                  focus:ring-1 focus:ring-[var(--primary)] outline-none border-gray-300"
