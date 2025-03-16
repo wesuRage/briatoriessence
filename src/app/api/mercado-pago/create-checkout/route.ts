@@ -8,7 +8,18 @@ const client = new MercadoPagoConfig({
 });
 
 export async function POST(req: Request) {
-    const { pedido, token, total, metodo, payer, userid, parcelas, device_id, issuer_id } = await req.json();
+  try {
+    const {
+      pedido,
+      token,
+      total,
+      metodo,
+      payer,
+      userid,
+      parcelas,
+      device_id,
+      issuer_id,
+    } = await req.json();
 
     // Validação básica dos dados
     if (!pedido?.produtos || !total || !metodo) {
@@ -19,7 +30,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (metodo !== "pix" && !token) {
+    if (metodo !== "pix" && metodo !== "bolbradesco" && !token) {
       console.error("Token de pagamento é necessário");
       return NextResponse.json(
         { error: "Token de pagamento é necessário" },
@@ -30,7 +41,8 @@ export async function POST(req: Request) {
     const payment = new Payment(client);
 
     const usuario = await prisma.user.findUnique({
-      where: { email: payer.email }, include: { address: true },
+      where: { email: payer.email },
+      include: { address: true },
     });
 
     const usuarioNome = usuario?.name.split(" ");
@@ -38,18 +50,19 @@ export async function POST(req: Request) {
     // Estrutura de dados para o Mercado Pago
     const paymentData = {
       transaction_amount: total,
-      description: `Pedido #${pedido.id || "sem-id"}`,
+      description: "Aquisição de cosmético(s)",
       payment_method_id: metodo === "credit_card" ? "credit_card" : metodo,
       installments: parcelas,
       payer: {
         email: payer.email,
         first_name: usuarioNome![0], // Nome do comprador
-        last_name: usuarioNome![(usuarioNome?.length! - 1)], // Sobrenome do comprador
+        last_name: usuarioNome![usuarioNome?.length! - 1], // Sobrenome do comprador
         identification: {
           type: "CPF",
-          number: payer.cpf.replace(/\D/g, ""),
+          number: usuario?.cpf!.replace(/\D/g, ""),
         },
-        address: { // Endereço do comprador (se disponível)
+        address: {
+          // Endereço do comprador (se disponível)
           zip_code: usuario?.address?.cep,
           street_name: usuario?.address?.rua,
           street_number: usuario?.address?.numero,
@@ -57,13 +70,16 @@ export async function POST(req: Request) {
           city: usuario?.address?.cidade,
           federal_unit: usuario?.address?.estado,
         },
-        phone: { // Telefone do comprador (se disponível)
+        phone: {
           area_code: usuario?.telefone?.substring(0, 2),
           number: usuario?.telefone?.substring(2),
         },
       },
       notification_url: `${process.env.MERCADO_PAGO_URL}/api/mercado-pago/webhook`,
-      external_reference: pedido.id?.toString() || "temp-reference",
+      external_reference:
+        pedido.produtos && pedido.produtos.length > 0
+          ? pedido.produtos.map((produto: any) => produto.produtoId).join("-")
+          : "temp-reference",
       additional_info: {
         items: pedido.produtos.map((produto: any) => ({
           id: produto.produtoId, // Código do item
@@ -71,7 +87,10 @@ export async function POST(req: Request) {
           description: produto.produto.descricao || "Sem descrição", // Descrição do item
           category_id: "cosmético", // Categoria do item
           quantity: produto.quantidade, // Quantidade do item
-          unit_price: produto.produto.precoDes > 0 ? produto.produto.precoDes : produto.produto.precoOrg, // Preço do item
+          unit_price:
+            produto.produto.precoDes > 0
+              ? produto.produto.precoDes
+              : produto.produto.precoOrg, // Preço do item
         })),
       },
       statement_descriptor: "BRIATORI ESSENCE", // Descrição na fatura do cartão
@@ -88,6 +107,8 @@ export async function POST(req: Request) {
     };
 
     const result = await payment.create({ body: paymentData });
+
+    console.log(result);
 
     // Atualização do pedido no banco de dados
     const userPedido = await prisma.pedido.create({
@@ -134,6 +155,10 @@ export async function POST(req: Request) {
       status: result.status === "approved" ? "pago" : "pendente",
       pedido_id: userPedido.id,
       payment_id: result.id,
+      ...(metodo === "bolbradesco" && {
+        pdf: result.transaction_details?.external_resource_url,
+        barcode: result.transaction_details?.barcode?.content,
+      }),
       ...(metodo === "pix" && {
         qr_code: result.point_of_interaction?.transaction_data?.qr_code,
         qr_code_base64:
@@ -142,4 +167,11 @@ export async function POST(req: Request) {
     };
 
     return NextResponse.json(responseData, { status: 200 });
+  } catch (error) {
+    console.error("Erro ao criar pagamento:", error);
+    return NextResponse.json(
+      { error: `Erro ao criar pagamento: ${error}` },
+      { status: 500 }
+    );
+  }
 }

@@ -15,8 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CiBarcode } from "react-icons/ci";
-import { initMercadoPago } from "@mercadopago/sdk-react";
-import { createCardToken } from "@mercadopago/sdk-react/esm/coreMethods";
+import Link from "next/link";
 
 export default function Billing({
   advanceTo,
@@ -32,7 +31,11 @@ export default function Billing({
   const [processing, setProcessing] = useState(false);
   const [pix, setPix] = useState<any>(null);
   const [boleto, setBoleto] = useState<any>(null);
-  const [issuer, setIssuer] = useState<string | null>(null);
+  const [cardForm, setCardForm] = useState<any>(null);
+  const [token, setToken] = useState<any>(null);
+  const [issuerId, setIssuerId] = useState<any>(null);
+  const [paymentMethodId, setPaymentMethodId] = useState<any>(null);
+  const [mercadopago, setMercadoPago] = useState<any>(null);
 
   const cartaoSchema = z.object({
     nomeTitular: z.string().nonempty("Preencha este campo"),
@@ -101,10 +104,6 @@ export default function Billing({
   });
 
   useEffect(() => {
-    initMercadoPago(process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!);
-  }, []);
-
-  useEffect(() => {
     if (!pix) return; // Não faz nada se não houver paymentId
 
     const checkPaymentStatus = async () => {
@@ -143,20 +142,39 @@ export default function Billing({
     carregarDados();
   }, []);
 
-  const processarPagamentoCartao = async (data: BillingCardData) => {
-    try {
-      setProcessing(true);
+  useEffect(() => {
+    window.onload = () => {
+      function checkMp() {
+        // @ts-ignore
+        const mp = window.MercadoPago(
+          process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
+        );
+        setMercadoPago(mp);
+      }
 
-      // @ts-ignore
-      const mercadopago = new MercadoPago(
-        process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
-      );
+      checkMp();
 
-      const form = {
+      setTimeout(() => {
+        // @ts-ignore
+        if (!window.MercadoPago.initialized) {
+          checkMp();
+        }
+      }, 1000);
+    };
+  }, []);
+
+  const loadForm = async () => {
+    if (!pedido || cardForm) return; // Evitar múltiplas inicializações
+
+    // Inicialize o cardForm apenas uma vez ao montar o componente
+
+    const newForm = mercadopago.cardForm({
+      amount: String(pedido.total),
+      form: {
         id: "form-checkout",
         cardholderName: {
           id: "form-checkout__cardholderName",
-          placeholder: "Holder name",
+          placeholder: "Nome do titular",
         },
         cardholderEmail: {
           id: "form-checkout__cardholderEmail",
@@ -164,98 +182,117 @@ export default function Billing({
         },
         cardNumber: {
           id: "form-checkout__cardNumber",
-          placeholder: "Card number",
-          style: {
-            fontSize: "1rem",
-          },
+          placeholder: "Número do cartão",
         },
         expirationDate: {
           id: "form-checkout__expirationDate",
-          placeholder: "MM/YYYY",
-          style: {
-            fontSize: "1rem",
-          },
+          placeholder: "MM/YY",
+        },
+        issuer: {
+          id: "form-checkout__issuer",
+          placeholder: "Banco emissor",
         },
         securityCode: {
           id: "form-checkout__securityCode",
-          placeholder: "Security code",
-          style: {
-            fontSize: "1rem",
-          },
+          placeholder: "CVV",
         },
         installments: {
           id: "form-checkout__installments",
-          placeholder: "Installments",
+          placeholder: "Parcelas",
         },
         identificationType: {
           id: "form-checkout__identificationType",
         },
         identificationNumber: {
           id: "form-checkout__identificationNumber",
-          placeholder: "Identification number",
+          placeholder: "CPF/CNPJ",
         },
-        issuer: {
-          id: "form-checkout__issuer",
-          placeholder: "Issuer",
+      },
+      callbacks: {
+        onFormMounted: (error: any) => {
+          if (error) console.error("Form error:", error);
+        },
+        onCardTokenReceived: (error: any, token: any) => {
+          if (error) {
+            console.error("Token error:", error);
+            alert("Erro ao processar cartão");
+          } else {
+            setToken(token);
+            console.log("Token gerado:", token);
+          }
+        },
+        onSubmit: (event: any) => {
+          event.preventDefault();
+          setProcessing(true);
+
+          try {
+            const {
+              token,
+              issuerId: issuer_id,
+              paymentMethodId: payment_method_id,
+            } = newForm.createCardToken();
+            setToken(token);
+            setIssuerId(issuer_id);
+            setPaymentMethodId(payment_method_id);
+            console.log("Token gerado:", token);
+
+            // Disparar submit manualmente após obter token
+            handleSubmit(processarPagamentoCartao)();
+          } catch (error) {
+            console.error("Tokenization error:", error);
+            alert("Erro ao processar cartão");
+          } finally {
+            setProcessing(false);
+          }
+        },
+        onFetching: (resource: any) => {
+          console.log("Fetching:", resource);
+        },
+        onError: (error: any) => {
+          console.error("Form error:", error);
+          alert(`Erro no formulário: ${error}`);
+        },
+      },
+    });
+
+    // Guarde o cardForm em um estado se precisar acessá-lo depois
+    setCardForm(newForm);
+  };
+
+  const processarPagamentoCartao = async (data: BillingCardData) => {
+    try {
+      setProcessing(true);
+
+      await loadForm();
+
+      if (!token) {
+        alert("O token do cartão ainda não foi gerado.");
+        return;
+      }
+
+      const dados = {
+        pedido: pedido,
+        parcelas: data.parcelas,
+        token: token,
+        total: pedido.total,
+        metodo: paymentMethodId,
+        issuer_id: issuerId,
+        payer: {
+          email: session?.user?.email,
         },
       };
 
-      const cardForm = mercadopago.cardForm({
-        amount: String(pedido.total),
-        form,
-        callbacks: {
-          onFormMounted: (error: any) => {
-            if (error)
-              return console.warn("Form Mounted handling error: ", error);
-            console.log("Form mounted");
-          },
-          onSubmit: (event: any) => {
-            event.preventDefault();
+      console.log(dados);
 
-            const {
-              paymentMethodId,
-              issuerId,
-              cardholderEmail: email,
-              amount,
-              token,
-              installments,
-              identificationNumber,
-              identificationType,
-            } = cardForm.getCardFormData();
+      const response = await axios.post(
+        "/api/mercado-pago/create-checkout",
+        dados,
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-            console.log("penis mole", issuerId, token);
-
-            // Envia os dados para a API
-            axios
-              .post(
-                "/api/mercado-pago/create-checkout",
-                {
-                  pedido: pedido,
-                  parcelas: data.parcelas,
-                  token: token,
-                  total: pedido.total,
-                  metodo: paymentMethodId,
-                  issuer_id: issuerId, // Envia o issuer_id
-                  payer: {
-                    email: session?.user?.email,
-                    cpf: data.cpf, // Remove formatação
-                  },
-                },
-                { headers: { "Content-Type": "application/json" } }
-              )
-              .then(async (response) => {
-                if (response.data.status === "pago") {
-                  await finalizarPedido("cartao", response.data);
-                  advanceTo("success");
-                }
-              });
-          },
-          onError: (error: any) => {
-            console.error('Erro no cardForm:', error);
-            alert('Erro ao processar o cartão: ' + error);
-          },      
-        },
-      });
+      if (response.data.status === "pago") {
+        await finalizarPedido("cartao", response.data);
+      }
     } catch (error) {
       console.log("Erro no pagamento com cartão:", error);
       alert("Erro ao processar pagamento!");
@@ -303,6 +340,8 @@ export default function Billing({
         },
       });
 
+      console.log(await response.data);
+
       if (response.data.status === "pendente") {
         await finalizarPedido("boleto", response.data);
       }
@@ -324,6 +363,7 @@ export default function Billing({
       }
       switch (meioPagamento) {
         case "cartao": {
+          // setCartao(response);
         }
         case "pix":
           setPix(response);
@@ -563,7 +603,7 @@ export default function Billing({
               <select
                 id="form-checkout__issuer"
                 name="issuer"
-                value={"mastercard"}
+                defaultValue={"mastercard"}
                 className="hidden"
               >
                 <option value="mastercard">Mastercard</option>
@@ -685,9 +725,8 @@ export default function Billing({
                   type="text"
                   {...register("nomeTitular", {
                     onChange: (e) => {
-                      const value = e.target.value
-                        .toUpperCase()
-                        // .replace(/\d/g, ""); // Converte para maiúsculas e remove números
+                      const value = e.target.value.toUpperCase();
+                      // .replace(/\d/g, ""); // Converte para maiúsculas e remove números
                       setValue("nomeTitular", value); // Atualiza o valor do campo no formulário
                     },
                   })}
@@ -968,6 +1007,41 @@ export default function Billing({
           </div>
         )}
 
+        {boleto && (
+          <section className="flex flex-col items-center justify-center gap-5">
+            <h2 className="text-2xl mt-5 font-bold">
+              Status do pagamento:{" "}
+              <span className="bg-[var(--primary)] p-2 rounded-md">
+                {boleto.status}
+              </span>
+            </h2>
+
+            <Link
+              href={boleto.pdf}
+              target="_blank"
+              className="p-2 text-white bg-black rounded-md font-bold"
+            >
+              Baixar boleto
+            </Link>
+
+            <input
+              id="boleto"
+              type="text"
+              className="p-2 border border-gray-300 rounded-md w-full"
+              value={boleto.barcode}
+              disabled
+            />
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(boleto.barcode);
+              }}
+              className="cursor-pointer bg-black text-white rounded-md font-bold p-2"
+            >
+              Copiar código de barras
+            </button>
+          </section>
+        )}
+
         <section className="flex gap-4">
           {activeButton != "cartao" && (
             <button
@@ -989,7 +1063,7 @@ export default function Billing({
           )}
           {activeButton === "boleto" && (
             <button
-              onClick={handleSubmit(processarPagamentoBoleto)}
+              onClick={processarPagamentoBoleto}
               className="w-[70%] mt-6 bg-[var(--primary)] text-black font-bold py-3 rounded-md hover:scale-110 cursor-pointer transition-all duration-200 shadow-md hover:shadow-xl"
             >
               Confirmar & Gerar Boleto
