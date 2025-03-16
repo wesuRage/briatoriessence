@@ -98,7 +98,6 @@ export async function POST(req: Request) {
         meioPagamento: metodo,
         valorTotal: total,
         valorFrete: pedido.frete,
-        frete: pedido.frete,
         tipoFrete: pedido.tipoFrete,
         nomeDestinatario: pedido.endereco.nome,
         totalProdutos: pedido.produtos.reduce(
