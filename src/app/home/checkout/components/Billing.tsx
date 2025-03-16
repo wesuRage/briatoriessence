@@ -200,8 +200,6 @@ export default function Billing({
         },
       };
 
-      const cpf = data.cpf.replace(/\D/g, "");
-
       const cardForm = mercadopago.cardForm({
         amount: String(pedido.total),
         form,
@@ -240,7 +238,7 @@ export default function Billing({
                   issuer_id: issuerId, // Envia o issuer_id
                   payer: {
                     email: session?.user?.email,
-                    cpf, // Remove formatação
+                    cpf: data.cpf, // Remove formatação
                   },
                 },
                 { headers: { "Content-Type": "application/json" } }
