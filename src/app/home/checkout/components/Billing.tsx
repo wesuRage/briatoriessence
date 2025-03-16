@@ -59,6 +59,7 @@ export default function Billing({
       .number()
       .min(1, "O número de parcelas deve ser pelo menos 1")
       .max(12, "O número de parcelas não pode ser maior que 12"),
+    issuer: z.string().nonempty("Selecione a bandeira do cartão"),
   });
 
   const pixSchema = z.object({
@@ -193,7 +194,17 @@ export default function Billing({
           placeholder: "Issuer",
         },
       };
-      console.log(data.cpf, data.cvv, data.email, data.nomeTitular, data.numeroCartao, data.parcelas, data.validade, data.tipoDocumento);
+      console.log(
+        data.issuer,
+        data.cpf,
+        data.cvv,
+        data.email,
+        data.nomeTitular,
+        data.numeroCartao,
+        data.parcelas,
+        data.validade,
+        data.tipoDocumento
+      );
 
       const cardForm = mercadopago.cardForm({
         amount: String(pedido.total),
@@ -207,11 +218,8 @@ export default function Billing({
           onSubmit: (event: any) => {
             event.preventDefault();
 
-            const {
-              paymentMethodId,
-              issuerId,
-              token,
-            } = cardForm.getCardFormData();
+            const { paymentMethodId, issuerId, token } =
+              cardForm.getCardFormData();
 
             // Envia os dados para a API
             axios
@@ -239,9 +247,9 @@ export default function Billing({
               });
           },
           onError: (error: any) => {
-            console.error('Erro no cardForm:', error);
-            alert('Erro ao processar o cartão: ' + error);
-          },      
+            console.error("Erro no cardForm:", error);
+            alert("Erro ao processar o cartão: " + error);
+          },
         },
       });
     } catch (error) {
@@ -553,7 +561,7 @@ export default function Billing({
               {/* Número do Cartão */}
               <select
                 id="form-checkout__issuer"
-                name="issuer"
+                {...register("issuer")}
                 defaultValue={"mastercard"}
                 className="hidden"
               >
