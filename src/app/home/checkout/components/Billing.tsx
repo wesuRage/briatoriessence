@@ -31,11 +31,6 @@ export default function Billing({
   const [processing, setProcessing] = useState(false);
   const [pix, setPix] = useState<any>(null);
   const [boleto, setBoleto] = useState<any>(null);
-  const [cardForm, setCardForm] = useState<any>(null);
-  const [token, setToken] = useState<any>(null);
-  const [issuerId, setIssuerId] = useState<any>(null);
-  const [paymentMethodId, setPaymentMethodId] = useState<any>(null);
-  const [mercadopago, setMercadoPago] = useState<any>(null);
 
   const cartaoSchema = z.object({
     nomeTitular: z.string().nonempty("Preencha este campo"),
@@ -142,29 +137,20 @@ export default function Billing({
     carregarDados();
   }, []);
 
-  useEffect(() => {
-    setTimeout(() => {
+  const processarPagamentoCartao = async (data: BillingCardData) => {
+    try {
+      setProcessing(true);
+
       // @ts-ignore
-      const mp = new MercadoPago(
+      const mercadopago = new MercadoPago(
         process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
       );
 
-      setMercadoPago(mp);
-    }, 1000);
-  }, []);
-
-  const loadForm = async () => {
-    if (!pedido || cardForm) return; // Evitar múltiplas inicializações
-
-    // Inicialize o cardForm apenas uma vez ao montar o componente
-
-    const newForm = mercadopago.cardForm({
-      amount: String(pedido.total),
-      form: {
+      const form = {
         id: "form-checkout",
         cardholderName: {
           id: "form-checkout__cardholderName",
-          placeholder: "Nome do titular",
+          placeholder: "Holder name",
         },
         cardholderEmail: {
           id: "form-checkout__cardholderEmail",
@@ -172,108 +158,90 @@ export default function Billing({
         },
         cardNumber: {
           id: "form-checkout__cardNumber",
-          placeholder: "Número do cartão",
+          placeholder: "Card number",
+          style: {
+            fontSize: "1rem",
+          },
         },
         expirationDate: {
           id: "form-checkout__expirationDate",
-          placeholder: "MM/YY",
-        },
-        issuer: {
-          id: "form-checkout__issuer",
-          placeholder: "Banco emissor",
+          placeholder: "MM/YYYY",
+          style: {
+            fontSize: "1rem",
+          },
         },
         securityCode: {
           id: "form-checkout__securityCode",
-          placeholder: "CVV",
+          placeholder: "Security code",
+          style: {
+            fontSize: "1rem",
+          },
         },
         installments: {
           id: "form-checkout__installments",
-          placeholder: "Parcelas",
+          placeholder: "Installments",
         },
         identificationType: {
           id: "form-checkout__identificationType",
         },
         identificationNumber: {
           id: "form-checkout__identificationNumber",
-          placeholder: "CPF/CNPJ",
+          placeholder: "Identification number",
         },
-      },
-      callbacks: {
-        onFormMounted: (error: any) => {
-          if (error) console.error("Form error:", error);
-        },
-        onSubmit:  (event: any) => {
-          event.preventDefault();
-          setProcessing(true);
-
-          try {
-            const {
-              token,
-              issuerId: issuer_id,
-              paymentMethodId: payment_method_id,
-            } = newForm.createCardToken();
-            setToken(token);
-            setIssuerId(issuer_id);
-            setPaymentMethodId(payment_method_id);
-            console.log("Token gerado:", token);
-
-            // Disparar submit manualmente após obter token
-            handleSubmit(processarPagamentoCartao)();
-          } catch (error) {
-            console.error("Tokenization error:", error);
-            alert("Erro ao processar cartão");
-          } finally {
-            setProcessing(false);
-          }
-        },
-        onFetching: (resource: any) => {
-          console.log("Fetching:", resource);
-        },
-        onError: (error: any) => {
-          console.error("Form error:", error);
-          alert(`Erro no formulário: ${error}`);
-        },
-      },
-    });
-
-    // Guarde o cardForm em um estado se precisar acessá-lo depois
-    setCardForm(newForm);
-  };
-
-  const processarPagamentoCartao = async (data: BillingCardData) => {
-    try {
-      setProcessing(true);
-
-      await loadForm();
-
-      if (!token) {
-        alert("O token do cartão ainda não foi gerado.");
-        return;
-      }
-
-      const dados = {
-        pedido: pedido,
-        parcelas: data.parcelas,
-        token: token,
-        total: pedido.total,
-        metodo: paymentMethodId,
-        issuer_id: issuerId,
-        payer: {
-          email: session?.user?.email,
+        issuer: {
+          id: "form-checkout__issuer",
+          placeholder: "Issuer",
         },
       };
+      const cardForm = mercadopago.cardForm({
+        amount: String(pedido.total),
+        form,
+        callbacks: {
+          onFormMounted: (error: any) => {
+            if (error)
+              return console.warn("Form Mounted handling error: ", error);
+            console.log("Form mounted");
+          },
+          onSubmit: (event: any) => {
+            event.preventDefault();
 
-      console.log(dados);
+            const {
+              paymentMethodId,
+              issuerId,
+              token,
+            } = cardForm.getCardFormData();
 
-      const response = await axios.post(
-        "/api/mercado-pago/create-checkout",
-        dados,
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      if (response.data.status === "pago") {
-        await finalizarPedido("cartao", response.data);
-      }
+            // Envia os dados para a API
+            axios
+              .post(
+                "/api/mercado-pago/create-checkout",
+                {
+                  pedido: pedido,
+                  parcelas: data.parcelas,
+                  token: token,
+                  total: pedido.total,
+                  metodo: paymentMethodId,
+                  issuer_id: issuerId,
+                  payer: {
+                    email: session?.user?.email,
+                    cpf: data.cpf,
+                  },
+                },
+                { headers: { "Content-Type": "application/json" } }
+              )
+              .then(async (response) => {
+                if (response.data.status === "pago") {
+                  await finalizarPedido("cartao", response.data);
+                  advanceTo("success");
+                }
+              });
+          },
+          onError: (error: any) => {
+            console.error('Erro no cardForm:', error);
+            alert('Erro ao processar o cartão: ' + error);
+          },      
+        },
+      });
     } catch (error) {
       console.log("Erro no pagamento com cartão:", error);
       alert("Erro ao processar pagamento!");
