@@ -200,8 +200,7 @@ export default function Billing({
         },
       };
 
-      console.log(data.cpf);
-      console.log(data.cpf.replace(/\D/g, ""));
+      const cpf = data.cpf.replace(/\D/g, "");
 
       const cardForm = mercadopago.cardForm({
         amount: String(pedido.total),
@@ -241,7 +240,7 @@ export default function Billing({
                   issuer_id: issuerId, // Envia o issuer_id
                   payer: {
                     email: session?.user?.email,
-                    cpf: data.cpf.replace(/\D/g, ""), // Remove formatação
+                    cpf, // Remove formatação
                   },
                 },
                 { headers: { "Content-Type": "application/json" } }
@@ -255,7 +254,7 @@ export default function Billing({
           },
           onError: (error: any) => {
             console.error('Erro no cardForm:', error);
-            alert('Erro ao processar o cartão: ' + error.message);
+            alert('Erro ao processar o cartão: ' + error);
           },      
         },
       });
