@@ -148,109 +148,115 @@ export default function Billing({
       setProcessing(true);
 
       // @ts-ignore
-      const mercadopago = new MercadoPago(process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!);
+      const mercadopago = new MercadoPago(
+        process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
+      );
 
       const form = {
         id: "form-checkout",
         cardholderName: {
-            id: "form-checkout__cardholderName",
-            placeholder: "Holder name",
+          id: "form-checkout__cardholderName",
+          placeholder: "Holder name",
         },
         cardholderEmail: {
-            id: "form-checkout__cardholderEmail",
-            placeholder: "E-mail",
+          id: "form-checkout__cardholderEmail",
+          placeholder: "E-mail",
         },
         cardNumber: {
-            id: "form-checkout__cardNumber",
-            placeholder: "Card number",
-            style: {
-                fontSize: "1rem"
-            },
+          id: "form-checkout__cardNumber",
+          placeholder: "Card number",
+          style: {
+            fontSize: "1rem",
+          },
         },
         expirationDate: {
-            id: "form-checkout__expirationDate",
-            placeholder: "MM/YYYY",
-            style: {
-                fontSize: "1rem"
-            },
+          id: "form-checkout__expirationDate",
+          placeholder: "MM/YYYY",
+          style: {
+            fontSize: "1rem",
+          },
         },
         securityCode: {
-            id: "form-checkout__securityCode",
-            placeholder: "Security code",
-            style: {
-                fontSize: "1rem"
-            },
+          id: "form-checkout__securityCode",
+          placeholder: "Security code",
+          style: {
+            fontSize: "1rem",
+          },
         },
         installments: {
-            id: "form-checkout__installments",
-            placeholder: "Installments",
+          id: "form-checkout__installments",
+          placeholder: "Installments",
         },
         identificationType: {
-            id: "form-checkout__identificationType",
+          id: "form-checkout__identificationType",
         },
         identificationNumber: {
-            id: "form-checkout__identificationNumber",
-            placeholder: "Identification number",
+          id: "form-checkout__identificationNumber",
+          placeholder: "Identification number",
         },
         issuer: {
-            id: "form-checkout__issuer",
-            placeholder: "Issuer",
+          id: "form-checkout__issuer",
+          placeholder: "Issuer",
         },
-    };
+      };
 
-    const cardForm = mercadopago.cardForm({
-      amount: String(pedido.total),
-      form,
-      callbacks: {
-        onFormMounted: (error: any) => {
-          if (error)
-            return console.warn("Form Mounted handling error: ", error);
-          console.log("Form mounted");
+      const cardForm = mercadopago.cardForm({
+        amount: String(pedido.total),
+        form,
+        callbacks: {
+          onFormMounted: (error: any) => {
+            if (error)
+              return console.warn("Form Mounted handling error: ", error);
+            console.log("Form mounted");
+          },
+          onSubmit: async (event: any) => {
+            event.preventDefault();
+
+            const {
+              paymentMethodId,
+              issuerId,
+              cardholderEmail: email,
+              amount,
+              token,
+              installments,
+              identificationNumber,
+              identificationType,
+            } = cardForm.getCardFormData();
+
+            console.log("penis mole", issuerId, token);
+
+            // Envia os dados para a API
+            const response = await axios.post(
+              "/api/mercado-pago/create-checkout",
+              {
+                pedido: pedido,
+                parcelas: data.parcelas,
+                token: token,
+                total: pedido.total,
+                metodo: paymentMethodId,
+                issuer_id: issuerId, // Envia o issuer_id
+                payer: {
+                  email: session?.user?.email,
+                  cpf: data.cpf.replace(/\D/g, ""), // Remove formatação
+                },
+              },
+              { headers: { "Content-Type": "application/json" } }
+            );
+
+            if (response.data.status === "pago") {
+              await finalizarPedido("cartao", response.data);
+              advanceTo("success");
+            }
+          },
         },
-        onSubmit: async (event: any) => {
-          event.preventDefault();
-    
-          const {
-            paymentMethodId,
-            issuerId,
-            cardholderEmail: email,
-            amount,
-            token,
-            installments,
-            identificationNumber,
-            identificationType,
-          } = cardForm.getCardFormData();
-    
-          // Armazena o issuerId no estado
-          setIssuer(issuerId);
-    
-          // Envia os dados para a API
-          const response = await axios.post("/api/mercado-pago/create-checkout", {
-            pedido: pedido,
-            parcelas: data.parcelas,
-            token: token,
-            total: pedido.total,
-            metodo: paymentMethodId,
-            issuer_id: issuerId, // Envia o issuer_id
-            payer: {
-              email: session?.user?.email,
-              cpf: data.cpf.replace(/\D/g, ""), // Remove formatação
-            },
-          });
-    
-          if (response.data.status === "pago") {
-            await finalizarPedido("cartao", response.data);
-            advanceTo("success");
-          }
-        },
-      },
-    });} catch (error) {
+      });
+    } catch (error) {
       console.log("Erro no pagamento com cartão:", error);
       alert("Erro ao processar pagamento!");
     } finally {
       setProcessing(false);
     }
-}
+  };
 
   const processarPagamentoPix = async (data: BillingPixData) => {
     setProcessing(true);
@@ -551,7 +557,6 @@ export default function Billing({
               <select
                 id="form-checkout__issuer"
                 name="issuer"
-                value={issuer ? issuer : ""}
                 className="hidden"
               >
                 <option value="mastercard">Mastercard</option>
