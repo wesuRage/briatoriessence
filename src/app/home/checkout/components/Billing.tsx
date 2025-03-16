@@ -199,79 +199,69 @@ export default function Billing({
     };
 
     const cardForm = mercadopago.cardForm({
-        amount: String(pedido.total),
-        form,
-        callbacks: {
-            onFormMounted: (error: any) => {
-                if (error)
-                    return console.warn("Form Mounted handling error: ", error);
-                console.log("Form mounted");
-            },
-            onSubmit: async (event: any) => {
-                event.preventDefault();
-
-                const {
-                    paymentMethodId,
-                    issuerId,
-                    cardholderEmail: email,
-                    amount,
-                    token,
-                    installments,
-                    identificationNumber,
-                    identificationType,
-                } = cardForm.getCardFormData();
-                setIssuer(issuerId);
-            },
+      amount: String(pedido.total),
+      form,
+      callbacks: {
+        onFormMounted: (error: any) => {
+          if (error)
+            return console.warn("Form Mounted handling error: ", error);
+          console.log("Form mounted");
         },
-    });
-
-      // Gera o token através do formulário
-      const cardToken = await createCardToken({
-        cardNumber: data.numeroCartao.replace(/\D/g, ""),
-        cardholderName: data.nomeTitular,
-        cardExpirationMonth: data.validade.split("/")[0],
-        cardExpirationYear: `20${data.validade.split("/")[1]}`,
-        securityCode: data.cvv,
-        identificationType: data.tipoDocumento,
-        identificationNumber: data.cpf.replace(/\D/g, ""),
-      });
-
-      let response: AxiosResponse<any> | null = null;
-      await axios
-        .post("/api/mercado-pago/create-checkout", {
-          pedido: pedido,
-          parcelas: data.parcelas,
-          token: cardToken!.id,
-          total: pedido.total,
-          metodo: "credit_card",
-          issuer_id: issuer,
-          payer: {
-            email: session?.user?.email,
-            cpf: data.cpf.replace(/\D/g, ""), // Remove formatação
-          },
-        })
-        .then((res) => {
-          response = res;
-        })
-        .catch((error) => {
-          console.error("Erro no pagamento:", error);
-          alert("Erro ao processar pagamento com cartão");
-        })
-        .finally(() => {
-          setProcessing(false);
-        });
-
-      if ((await (response as any).data.status) === "pago") {
-        await finalizarPedido("cartao", await response!.data);
-        advanceTo("success");
-      }
-    } catch (error) {
-      console.error("Erro no pagamento:", error);
-      alert("Erro ao processar pagamento com cartão");
+        onSubmit: async (event: any) => {
+          event.preventDefault();
+    
+          const {
+            paymentMethodId,
+            issuerId,
+            cardholderEmail: email,
+            amount,
+            token,
+            installments,
+            identificationNumber,
+            identificationType,
+          } = cardForm.getCardFormData();
+    
+          // Armazena o issuerId no estado
+          setIssuer(issuerId);
+    
+          // Gera o token do cartão
+          const cardToken = await createCardToken({
+            cardNumber: data.numeroCartao.replace(/\D/g, ""),
+            cardholderName: data.nomeTitular,
+            cardExpirationMonth: data.validade.split("/")[0],
+            cardExpirationYear: `20${data.validade.split("/")[1]}`,
+            securityCode: data.cvv,
+            identificationType: data.tipoDocumento,
+            identificationNumber: data.cpf.replace(/\D/g, ""),
+          });
+    
+          // Envia os dados para a API
+          const response = await axios.post("/api/mercado-pago/create-checkout", {
+            pedido: pedido,
+            parcelas: data.parcelas,
+            token: cardToken!.id,
+            total: pedido.total,
+            metodo: "credit_card",
+            issuer_id: issuerId, // Envia o issuer_id
+            payer: {
+              email: session?.user?.email,
+              cpf: data.cpf.replace(/\D/g, ""), // Remove formatação
+            },
+          });
+    
+          if (response.data.status === "pago") {
+            await finalizarPedido("cartao", response.data);
+            advanceTo("success");
+          }
+        },
+      },
+    });} catch (error) {
+      console.log("Erro no pagamento com cartão:", error);
+      alert("Erro ao processar pagamento!");
     } finally {
       setProcessing(false);
     }
-  };
+}
 
   const processarPagamentoPix = async (data: BillingPixData) => {
     setProcessing(true);
