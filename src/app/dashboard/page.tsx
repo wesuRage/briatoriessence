@@ -25,28 +25,31 @@ export default function Dashboard() {
   const { data: session } = useSession();
 
   useEffect(() => {
-    axios
-      .get("/api/produtos")
-      .then((response) => {
-        setProdutos(response.data.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Erro ao buscar produtos:", error);
-        setLoading(false);
-      });
+    const fetchData = async () => {
+      await axios
+        .get("/api/produtos")
+        .then((response) => {
+          setProdutos(response.data.data);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Erro ao buscar produtos:", error);
+          setLoading(false);
+        });
 
-    axios
-      .get("/api/pedidos")
-      .then((response) => {
-        setPedidos(response.data.data);
-        console.log(pedidos);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Erro ao buscar pedidos:", error);
-        setLoading(false);
-      });
+      await axios
+        .get("/api/pedidos")
+        .then((response) => {
+          setPedidos(response.data.data);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Erro ao buscar pedidos:", error);
+          setLoading(false);
+        });
+    };
+
+    fetchData();
   }, []);
 
   const sortByNameAsc = () => {
@@ -73,6 +76,8 @@ export default function Dashboard() {
     setActiveButton("priceDesc");
   };
 
+  if (!pedidos || !produtos) return <h1>Carregando...</h1>;
+
   return (
     <Main>
       <section className="flex justify-end w-full">
@@ -80,8 +85,21 @@ export default function Dashboard() {
           <div className="w-full max-w-[680px]">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-2xl">Pedidos - 0 pendentes</h2>
+                <h2 className="text-2xl">
+                  Pedidos - {pedidos.length} pendentes
+                </h2>
               </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 mt-4 md:ml-auto border-2 rounded-md border-gray-300 overflow-y-scroll max-h-[400px] p-10 bg-white shadow-xl">
+              {pedidos.length > 0 ? (
+                pedidos.map((pedido: any, index: number) => (
+                  <section key={index} className="">
+                    
+                  </section>
+                ))
+              ) : (
+                <h1>Não há pedidos pendentes</h1>
+              )}
             </div>
           </div>
         </div>
