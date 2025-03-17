@@ -195,22 +195,6 @@ export default function Billing({
         },
       };
 
-      // Inicializa os campos seguros
-      const cardNumberField = mp.fields.create("cardNumber", {
-        placeholder: "Número do cartão",
-      });
-      cardNumberField.mount("form-checkout__cardNumber");
-
-      const expirationDateField = mp.fields.create("expirationDate", {
-        placeholder: "MM/AAAA",
-      });
-      expirationDateField.mount("form-checkout__expirationDate");
-
-      const securityCodeField = mp.fields.create("securityCode", {
-        placeholder: "Código de segurança",
-      });
-      securityCodeField.mount("form-checkout__securityCode");
-
       // Configura o cardForm com os campos seguros
       const cardForm = mp.cardForm({
         amount: String(pedido.total),
@@ -225,10 +209,16 @@ export default function Billing({
           },
           onSubmit: async (event: any) => {
             event.preventDefault();
-
-            // Cria o token do cartão usando os campos seguros
-            const token = await mp.fields.createCardToken();
             
+            // Cria o token do cartão usando os campos seguros
+            const token = await mp.createCardToken({
+              cardholderName: data.nomeTitular,
+              cardNumber: data.numeroCartao.replace(/\s+/g, ''),
+              securityCode: data.cvv,
+              identificationType: data.tipoDocumento,
+              identificationNumber: data.cpf.replace(/\D/g, ""),
+            });
+
             console.log("Token gerado:", token);
 
             // Envia os dados para a API
@@ -257,6 +247,7 @@ export default function Billing({
             alert("Erro ao processar o cartão: " + error.message);
           },
         },
+        processingMode: "aggregator",
       });
     } catch (error) {
       console.error("Erro no pagamento com cartão:", error);
