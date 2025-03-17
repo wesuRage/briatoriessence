@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       );
     }
     const paymentId = data.id;
-    const paymentId2 = resource.id;
+    const paymentId2 = resource;
 
     const payment = new Payment(client);
     const response1 = await payment.get({ id: paymentId });
