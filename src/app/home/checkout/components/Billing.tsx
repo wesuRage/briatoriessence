@@ -171,13 +171,11 @@ export default function Billing({
         }));
       } 
 
-      console.log(id);
-
       const response = await axios.post("/api/mercado-pago/create-checkout", {
         userid: session?.user.id,
         pedido: pedido,
         parcelas: data.parcelas,
-        total: Number(pedido.total),
+        total: Number(parseFloat(pedido.total).toFixed(2)),
         metodo: id,
         token: token.id,
         issuer_id: issuerOptions[0].id,
