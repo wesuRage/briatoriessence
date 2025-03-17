@@ -147,7 +147,7 @@ export default function Billing({
         process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
       );
 
-      const form = {
+      const formConfig = {
         id: "form-checkout",
         cardholderName: {
           id: "form-checkout__cardholderName",
@@ -161,21 +161,21 @@ export default function Billing({
           id: "form-checkout__cardNumber",
           placeholder: "Card number",
           style: {
-            fontSize: "1rem",
+            fontSize: "1rem", // Corrigido de fontsize para fontSize
           },
         },
         expirationDate: {
           id: "form-checkout__expirationDate",
           placeholder: "MM/YYYY",
           style: {
-            fontSize: "1rem",
+            fontSize: "1rem", // Corrigido de fontsize para fontSize
           },
         },
         securityCode: {
           id: "form-checkout__securityCode",
           placeholder: "Security code",
           style: {
-            fontSize: "1rem",
+            fontSize: "1rem", // Corrigido de fontsize para fontSize
           },
         },
         installments: {
@@ -194,55 +194,60 @@ export default function Billing({
           placeholder: "Issuer",
         },
       };
+  
+      // Inicializa os campos seguros
+      const fields = mercadopago.fields({ form: formConfig });
+  
+      // Configura o cardForm com os campos seguros
       const cardForm = mercadopago.cardForm({
         amount: String(pedido.total),
-        form,
+        form: { id: "form-checkout" }, // Apenas o ID do formulário aqui
+        fields, // Passa os campos seguros
         callbacks: {
           onFormMounted: (error: any) => {
-            if (error)
-              return console.warn("Form Mounted handling error: ", error);
+            if (error) {
+              console.warn("Form Mounted handling error: ", error);
+              return;
+            }
             console.log("Form mounted");
           },
           onSubmit: async (event: any) => {
             event.preventDefault();
-
-            const token = await mercadopago.fields.createCardToken();
-
-            console.log(token);
-
+  
+            // Cria o token do cartão usando os campos seguros
+            const token = await fields.createCardToken();
+  
+            console.log("Token gerado:", token);
+  
             // Envia os dados para a API
-            axios
-              .post(
-                "/api/mercado-pago/create-checkout",
-                {
-                  pedido: pedido,
-                  parcelas: data.parcelas,
-                  token: token,
-                  total: pedido.total,
-                  // metodo: paymentMethodId,
-                  // issuer_id: issuerId,
-                  payer: {
-                    email: session?.user?.email,
-                    cpf: data.cpf,
-                  },
+            const response = await axios.post(
+              "/api/mercado-pago/create-checkout",
+              {
+                pedido: pedido,
+                parcelas: data.parcelas,
+                token: token,
+                total: pedido.total,
+                payer: {
+                  email: session?.user?.email,
+                  cpf: data.cpf,
                 },
-                { headers: { "Content-Type": "application/json" } }
-              )
-              .then(async (response) => {
-                if (response.data.status === "pago") {
-                  await finalizarPedido("cartao", response.data);
-                  advanceTo("success");
-                }
-              });
+              },
+              { headers: { "Content-Type": "application/json" } }
+            );
+  
+            if (response.data.status === "pago") {
+              await finalizarPedido("cartao", response.data);
+              advanceTo("success");
+            }
           },
           onError: (error: any) => {
-            console.error('Erro no cardForm:', error);
-            alert('Erro ao processar o cartão: ' + error);
-          },      
+            console.error("Erro no cardForm:", error);
+            alert("Erro ao processar o cartão: " + error.message);
+          },
         },
       });
     } catch (error) {
-      console.log("Erro no pagamento com cartão:", error);
+      console.error("Erro no pagamento com cartão:", error);
       alert("Erro ao processar pagamento!");
     } finally {
       setProcessing(false);
