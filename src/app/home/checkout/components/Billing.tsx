@@ -156,10 +156,20 @@ export default function Billing({
         identificationNumber: data.cpf.replace(/\D/g, ""),
       });
 
-      const issuer = await mp.getIssuers({
-        paymentMethodId: data.issuer,
-        bin: data.numeroCartao.replace(/\s+/g, ""),
-      });
+      const bin = data.numeroCartao.replace(/\s+/g, "");
+
+      const {results} = await mp.getPaymentMethods({ bin })
+      const paymentMethod = results[0];
+      const { additional_info_needed, issuer, id } = paymentMethod;
+      let issuerOptions = [issuer];
+
+      if (additional_info_needed.includes("issuer_id")) {
+        const issuersResponse = await mp.getIssuers({ paymentMethodId: id, bin });
+        issuerOptions = issuersResponse.map((issuer: any) => ({
+          ...issuer,
+          default: false,
+        }));
+      } 
 
       const response = await axios.post("/api/mercado-pago/create-checkout", {
         userid: session?.user.id,
@@ -168,7 +178,7 @@ export default function Billing({
         total: Number(pedido.total),
         metodo: "credit_card",
         token: token.id,
-        issuer_id: issuer[0].id,
+        issuer_id: issuerOptions[0].id,
         payer: {
           email: data.email,
           cpf: data.cpf.replace(/\D/g, ""),

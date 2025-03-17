@@ -170,7 +170,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Erro ao criar pagamento:", error);
     return NextResponse.json(
-      { error: `Erro ao criar pagamento: ${error}` },
+      { error },
       { status: 500 }
     );
   }
