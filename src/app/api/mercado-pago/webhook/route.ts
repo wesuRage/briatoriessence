@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   try {
     const dados = await req.json();
     const { type, data, topic, resource } = dados;
-    
+
     console.log(dados);
 
     if (type != "payment" && topic != "payment") {
@@ -24,12 +24,19 @@ export async function POST(req: Request) {
     const paymentId2 = resource;
 
     const payment = new Payment(client);
-    const response1 = await payment.get({ id: paymentId });
-    const response2 = await payment.get({ id: paymentId2 });
 
-    console.log(response1.status, response2.status);
+    let response1;
+    if (paymentId) {
+      response1 = await payment.get({ id: paymentId });
+    }
 
-    if (response1.status === "approved" || response2.status === "approved") {
+    let response2; 
+    if (paymentId2) {
+      response2 = await payment.get({ id: paymentId2 });
+    }
+    console.log(response1?.status, response2?.status);
+
+    if (response1?.status === "approved" || response2?.status === "approved") {
       await axios.patch(
         `${process.env.MERCADO_PAGO_URL}/api/pedidos`,
         { status: "pago", payment_id: paymentId },
@@ -43,9 +50,6 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.error("Erro ao processar webhook:", error);
-    return NextResponse.json(
-      { error },
-      { status: 500 }
-    );
+    return NextResponse.json({ error }, { status: 500 });
   }
 }
