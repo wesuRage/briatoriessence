@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { MercadoPagoConfig, Payment } from "mercadopago";
 import prisma from "../../../../../prisma";
+import axios from "axios";
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
@@ -18,6 +19,7 @@ export async function POST(req: Request) {
       userid,
       parcelas,
       issuer_id,
+      device_id,
     } = await req.json();
 
     // Validação básica dos dados
@@ -104,7 +106,23 @@ export async function POST(req: Request) {
       }),
     };
 
-    const result = await payment.create({ body: paymentData });
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN}`,
+      "X-meli-session-id": device_id,
+      "X-Idempotency-Key": `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2, 15)}`,
+    };
+
+    // Requisição para a API do Mercado Pago
+    const response = await axios.post(
+      "https://api.mercadopago.com/v1/payments",
+      paymentData,
+      { headers }
+    );
+
+    const result = await response.data;
 
     // Atualização do pedido no banco de dados
     const userPedido = await prisma.pedido.create({
@@ -163,9 +181,6 @@ export async function POST(req: Request) {
     return NextResponse.json(responseData, { status: 200 });
   } catch (error) {
     console.error("Erro ao criar pagamento:", error);
-    return NextResponse.json(
-      { error },
-      { status: 500 }
-    );
+    return NextResponse.json({ error }, { status: 500 });
   }
 }

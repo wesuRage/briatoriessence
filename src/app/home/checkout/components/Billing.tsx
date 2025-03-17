@@ -218,6 +218,8 @@ export default function Billing({
           email: data.email,
           cpf: data.cpf.replace(/\D/g, ""),
         },
+        // @ts-ignore
+        device_id: MP_DEVICE_SESSION_ID
       });
 
       if (response.data.status === "pendente") {
