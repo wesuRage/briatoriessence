@@ -58,7 +58,7 @@ export async function POST(req: Request) {
       device_id,
       issuer_id,
     })
-    
+
     // Estrutura de dados para o Mercado Pago
     const paymentData = {
       transaction_amount: total,
@@ -136,7 +136,6 @@ export async function POST(req: Request) {
           (total: number, item: any) => total + item.quantidade,
           0
         ),
-        userId: userid,
         user: {
           connect: {
             id: userid,
