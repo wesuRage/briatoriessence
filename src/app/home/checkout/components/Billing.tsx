@@ -147,108 +147,15 @@ export default function Billing({
         process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
       );
 
-      const formConfig = {
-        id: "form-checkout",
-        cardholderName: {
-          id: "form-checkout__cardholderName",
-          placeholder: "Holder name",
-        },
-        cardholderEmail: {
-          id: "form-checkout__cardholderEmail",
-          placeholder: "E-mail",
-        },
-        cardNumber: {
-          id: "form-checkout__cardNumber",
-          placeholder: "Card number",
-          style: {
-            fontSize: "1rem", // Corrigido de fontsize para fontSize
-          },
-        },
-        expirationDate: {
-          id: "form-checkout__expirationDate",
-          placeholder: "MM/YYYY",
-          style: {
-            fontSize: "1rem", // Corrigido de fontsize para fontSize
-          },
-        },
-        securityCode: {
-          id: "form-checkout__securityCode",
-          placeholder: "Security code",
-          style: {
-            fontSize: "1rem", // Corrigido de fontsize para fontSize
-          },
-        },
-        installments: {
-          id: "form-checkout__installments",
-          placeholder: "Installments",
-        },
-        identificationType: {
-          id: "form-checkout__identificationType",
-        },
-        identificationNumber: {
-          id: "form-checkout__identificationNumber",
-          placeholder: "Identification number",
-        },
-        issuer: {
-          id: "form-checkout__issuer",
-          placeholder: "Issuer",
-        },
-      };
-
-      // Configura o cardForm com os campos seguros
-      const cardForm = mp.cardForm({
-        amount: String(pedido.total),
-        form: formConfig, // Apenas o ID do formulário aqui
-        callbacks: {
-          onFormMounted: (error: any) => {
-            if (error) {
-              console.warn("Form Mounted handling error: ", error);
-              return;
-            }
-            console.log("Form mounted");
-          },
-          onSubmit: async (event: any) => {
-            event.preventDefault();
-            
-            // Cria o token do cartão usando os campos seguros
-            const token = await mp.createCardToken({
-              cardholderName: data.nomeTitular,
-              cardNumber: data.numeroCartao.replace(/\s+/g, ''),
-              securityCode: data.cvv,
-              identificationType: data.tipoDocumento,
-              identificationNumber: data.cpf.replace(/\D/g, ""),
-            });
-
-            console.log("Token gerado:", token);
-
-            // Envia os dados para a API
-            const response = await axios.post(
-              "/api/mercado-pago/create-checkout",
-              {
-                pedido: pedido,
-                parcelas: data.parcelas,
-                token: token,
-                total: pedido.total,
-                payer: {
-                  email: session?.user?.email,
-                  cpf: data.cpf,
-                },
-              },
-              { headers: { "Content-Type": "application/json" } }
-            );
-
-            if (response.data.status === "pago") {
-              await finalizarPedido("cartao", response.data);
-              advanceTo("success");
-            }
-          },
-          onError: (error: any) => {
-            console.error("Erro no cardForm:", error);
-            alert("Erro ao processar o cartão: " + error.message);
-          },
-        },
-        processingMode: "aggregator",
+      const token = await mp.createCardToken({
+        cardholderName: data.nomeTitular,
+        cardNumber: data.numeroCartao.replace(/\s+/g, ''),
+        securityCode: data.cvv,
+        identificationType: data.tipoDocumento,
+        identificationNumber: data.cpf.replace(/\D/g, ""),
       });
+
+      console.log(token);
     } catch (error) {
       console.error("Erro no pagamento com cartão:", error);
       alert("Erro ao processar pagamento!");
