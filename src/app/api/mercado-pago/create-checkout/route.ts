@@ -98,7 +98,7 @@ export async function POST(req: Request) {
       capture: true, // Captura imediata dos fundos
       device_id: device_id, // Identificador do dispositivo
       issuer_id: issuer_id, // Código do emissor do meio de pagamento
-      ...(metodo === "credit_card" && { token }),
+      ...(token && { token }),
       ...(metodo === "pix" && {
         transaction_details: {
           financial_institution: "pix",
