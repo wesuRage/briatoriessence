@@ -59,7 +59,7 @@ export async function POST(req: Request) {
         last_name: usuarioNome![usuarioNome?.length! - 1], // Sobrenome do comprador
         identification: {
           type: "CPF",
-          number: usuario?.cpf!.replace(/\D/g, ""),
+          number: payer.cpf,
         },
         address: {
           // Endereço do comprador (se disponível)
