@@ -47,6 +47,18 @@ export async function POST(req: Request) {
 
     const usuarioNome = usuario?.name.split(" ");
 
+    console.log({
+      pedido,
+      token,
+      total,
+      metodo,
+      payer,
+      userid,
+      parcelas,
+      device_id,
+      issuer_id,
+    })
+    
     // Estrutura de dados para o Mercado Pago
     const paymentData = {
       transaction_amount: total,

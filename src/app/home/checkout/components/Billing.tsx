@@ -173,7 +173,7 @@ export default function Billing({
 
       const amount = Number(parseFloat(pedido.total).toFixed(2));
 
-      console.log(typeof amount, amount);
+      console.log(typeof data.parcelas, data.parcelas);
 
       const response = await axios.post("/api/mercado-pago/create-checkout", {
         userid: session?.user.id,
