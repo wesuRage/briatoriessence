@@ -519,10 +519,7 @@ export default function Billing({
             <p className="text-gray-400 my-4">Seus dados bancários não serão armazenados.</p>
             <form
               id="form-checkout"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit(processarPagamentoCartao)();
-              }}
+              onSubmit={handleSubmit(processarPagamentoCartao)}
               className="space-y-4"
             >
               {/* Número do Cartão */}
@@ -851,11 +848,11 @@ export default function Billing({
                   Cancelar
                 </button>
                 <button
-                  type="submit" // Altere para type="submit"
-                  // disabled={processing}
+                  type="submit"
+                  disabled={processing}
                   className="w-[70%] bg-[var(--primary)] text-black font-bold py-3 rounded-md hover:scale-110 cursor-pointer transition-all duration-200 shadow-md hover:shadow-xl disabled:opacity-50"
                 >
-                  Finalizar pedido
+                  {processing ? "Processando..." : "Finalizar pedido"}
                 </button>
               </section>
             </form>
