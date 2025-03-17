@@ -156,7 +156,10 @@ export default function Billing({
         identificationNumber: data.cpf.replace(/\D/g, ""),
       });
 
-      const issuer = await mp.getIssuers({ bin: data.numeroCartao.replace(/\s+/g, "").slice(0, 6) })
+      const issuer = await mp.getIssuers({
+        paymentMethodId: data.issuer,
+        bin: data.numeroCartao.replace(/\s+/g, "").slice(0, 6),
+      }).then((response: mercadopagocore.IssuersResponse[]) => response[0]);
 
       console.log();
 
@@ -167,7 +170,7 @@ export default function Billing({
         total: Number(pedido.total),
         metodo: "credit_card",
         token: token.id,
-        issuer_id: issuer,
+        issuer_id: issuer.id,
         payer: {
           email: data.email,
           cpf: data.cpf.replace(/\D/g, ""),
