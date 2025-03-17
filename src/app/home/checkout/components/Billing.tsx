@@ -171,6 +171,8 @@ export default function Billing({
         }));
       } 
 
+      console.log(id);
+
       const response = await axios.post("/api/mercado-pago/create-checkout", {
         userid: session?.user.id,
         pedido: pedido,
