@@ -204,8 +204,6 @@ export default function Billing({
 
       const amount = Number(parseFloat(pedido.total).toFixed(2));
 
-      
-
       const response = await axios.post("/api/mercado-pago/create-checkout", {
         userid: session?.user.id,
         pedido: pedido,
@@ -515,10 +513,10 @@ export default function Billing({
         {/* Seções de Pagamento */}
         {activeButton === "cartao" && (
           <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-4">
+            <h3 className="text-lg font-semibold">
               Pagamento com Cartão de Crédito ou Débito
             </h3>
-            <p>Seus dados bancários não serão armazenados.</p>
+            <p className="text-gray-400 my-4">Seus dados bancários não serão armazenados.</p>
             <form
               id="form-checkout"
               onSubmit={(e) => {
