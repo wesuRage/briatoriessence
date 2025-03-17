@@ -139,18 +139,6 @@ export default function Billing({
     carregarDados();
   }, []);
 
-  function getDeviceId() {
-    let deviceId = localStorage.getItem("device_id");
-  
-    if (!deviceId) {
-      // Gerar um device_id único, por exemplo, usando uma UUID
-      deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem("device_id", deviceId);  // Armazenar para futuras requisições
-    }
-  
-    return deviceId;
-  }  
-
   const processarPagamentoCartao = async (data: BillingCardData) => {
     try {
       setProcessing(true);
@@ -204,7 +192,6 @@ export default function Billing({
           email: data.email,
           cpf: data.cpf.replace(/\D/g, ""),
         },
-        device_id: getDeviceId(),
       });
 
       if (response.data.status === "pago") {

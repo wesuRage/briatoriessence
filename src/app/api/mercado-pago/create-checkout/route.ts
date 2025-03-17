@@ -17,7 +17,6 @@ export async function POST(req: Request) {
       payer,
       userid,
       parcelas,
-      device_id,
       issuer_id,
     } = await req.json();
 
@@ -96,7 +95,6 @@ export async function POST(req: Request) {
       statement_descriptor: "BRIATORI ESSENCE", // Descrição na fatura do cartão
       binary_mode: true, // Modo binário (pagamento aprovado imediatamente)
       capture: true, // Captura imediata dos fundos
-      device_id: device_id, // Identificador do dispositivo
       issuer_id: issuer_id, // Código do emissor do meio de pagamento
       ...(token && { token }),
       ...(metodo === "pix" && {
