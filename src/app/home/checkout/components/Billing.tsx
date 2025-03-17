@@ -220,7 +220,7 @@ export default function Billing({
         },
       });
 
-      if (response.data.status === "pending") {
+      if (response.data.status === "pendente") {
         await finalizarPedido("cartao", response.data);
       }
     } catch (error) {
