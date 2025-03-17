@@ -10,22 +10,26 @@ const client = new MercadoPagoConfig({
 export async function POST(req: Request) {
   try {
     const dados = await req.json();
-    const { type, data } = dados;
+    const { type, data, topic, resource } = dados;
     
     console.log(dados);
-    
-    if (type != "payment") {
+
+    if (type != "payment" && topic != "payment") {
       return NextResponse.json(
         { status: "error", data: "Forbidden" },
         { status: 403 }
       );
     }
     const paymentId = data.id;
+    const paymentId2 = resource.id;
 
     const payment = new Payment(client);
-    const response = await payment.get({ id: paymentId });
+    const response1 = await payment.get({ id: paymentId });
+    const response2 = await payment.get({ id: paymentId2 });
 
-    if (response.status === "approved") {
+    console.log(response1.status, response2.status);
+
+    if (response1.status === "approved" || response2.status === "approved") {
       await axios.patch(
         `${process.env.MERCADO_PAGO_URL}/api/pedidos`,
         { status: "pago", payment_id: paymentId },
