@@ -9,10 +9,12 @@ const client = new MercadoPagoConfig({
 
 export async function POST(req: Request) {
   try {
-    const { data, type } = await req.json();
-
+    const dados = await req.json();
+    const { type, data } = dados;
+    
+    console.log(dados);
+    
     if (type != "payment") {
-      console.log(type);
       return NextResponse.json(
         { status: "error", data: "Forbidden" },
         { status: 403 }
