@@ -15,6 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <Main>
+      <Script src="https://sdk.mercadopago.com/js/v2"></Script>
       {children}
     </Main>
   );
