@@ -206,25 +206,34 @@ export default function Billing({
 
       const amount = Number(parseFloat(pedido.total).toFixed(2));
 
-      const response = await axios.post("/api/mercado-pago/create-checkout", {
-        userid: session?.user.id,
-        pedido: pedido,
-        parcelas: data.parcelas,
-        total: amount,
-        metodo: id,
-        token: token.id,
-        issuer_id: issuerOptions[0].id,
-        payer: {
-          email: data.email,
-          cpf: data.cpf.replace(/\D/g, ""),
-        },
-        // @ts-ignore
-        device_id: MP_DEVICE_SESSION_ID
-      });
-
-      if (response.data.status === "pendente") {
-        await finalizarPedido("cartao", response.data);
-      }
+      await axios
+        .post("/api/mercado-pago/create-checkout", {
+          userid: session?.user.id,
+          pedido: pedido,
+          parcelas: data.parcelas,
+          total: amount,
+          metodo: id,
+          token: token.id,
+          issuer_id: issuerOptions[0].id,
+          payer: {
+            email: data.email,
+            cpf: data.cpf.replace(/\D/g, ""),
+          },
+          // @ts-ignore
+          device_id: MP_DEVICE_SESSION_ID,
+        })
+        .then(async (response) => {
+          if (response.data.status === "pendente") {
+            await finalizarPedido("cartao", response.data);
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          alert("Erro ao processar pagamento!");
+        })
+        .finally(() => {
+          setProcessing(false);
+        });
     } catch (error) {
       console.error("Erro no pagamento com cartão:", error);
       alert("Erro ao processar pagamento!");
