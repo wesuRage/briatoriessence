@@ -109,8 +109,6 @@ export async function POST(req: Request) {
 
     const result = await payment.create({ body: paymentData });
 
-    console.log(result);
-
     // Atualização do pedido no banco de dados
     const userPedido = await prisma.pedido.create({
       data: {
