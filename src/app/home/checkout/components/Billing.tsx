@@ -156,8 +156,9 @@ export default function Billing({
         identificationNumber: data.cpf.replace(/\D/g, ""),
       });
 
-      console.log(mp.getIssuers({ bin: data.numeroCartao.replace(/\s+/g, "").slice(0, 6) }));
+      const issuer = await mp.getIssuers({ bin: data.numeroCartao.replace(/\s+/g, "").slice(0, 6) })
 
+      console.log();
 
       const response = await axios.post("/api/mercado-pago/create-checkout", {
         userid: session?.user.id,
@@ -166,7 +167,7 @@ export default function Billing({
         total: Number(pedido.total),
         metodo: "credit_card",
         token: token.id,
-        issuer_id: data.issuer,
+        issuer_id: issuer,
         payer: {
           email: data.email,
           cpf: data.cpf.replace(/\D/g, ""),
