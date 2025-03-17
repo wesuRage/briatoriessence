@@ -156,7 +156,7 @@ export default function Billing({
         identificationNumber: data.cpf.replace(/\D/g, ""),
       });
 
-      const bin = data.numeroCartao.replace(/\s+/g, "");
+      const bin = data.numeroCartao.replace(/\s+/g, "").slice(0, 6);
 
       const {results} = await mp.getPaymentMethods({ bin })
       const paymentMethod = results[0];
