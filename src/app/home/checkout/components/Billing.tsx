@@ -31,6 +31,7 @@ export default function Billing({
   const [processing, setProcessing] = useState(false);
   const [pix, setPix] = useState<any>(null);
   const [boleto, setBoleto] = useState<any>(null);
+  const [cartao, setCartao] = useState<any>(null);
 
   const cartaoSchema = z.object({
     nomeTitular: z.string().nonempty("Preencha este campo"),
@@ -149,13 +150,29 @@ export default function Billing({
 
       const token = await mp.createCardToken({
         cardholderName: data.nomeTitular,
-        cardNumber: data.numeroCartao.replace(/\s+/g, ''),
+        cardNumber: data.numeroCartao.replace(/\s+/g, ""),
         securityCode: data.cvv,
         identificationType: data.tipoDocumento,
         identificationNumber: data.cpf.replace(/\D/g, ""),
       });
 
-      console.log(token);
+      const response = await axios.post("/api/mercado-pago/create-checkout", {
+        userId: session?.user.id,
+        pedido: pedido,
+        parcelas: data.parcelas,
+        total: Number(pedido.total),
+        metodo: "credit_card",
+        token: token.id,
+        issuer: data.issuer,
+        payer: {
+          email: data.email,
+          cpf: data.cpf.replace(/\D/g, ""),
+        },
+      });
+
+      if (response.data.status === "pago") {
+        await finalizarPedido("cartao", response.data);
+      }
     } catch (error) {
       console.error("Erro no pagamento com cartão:", error);
       alert("Erro ao processar pagamento!");
@@ -225,9 +242,9 @@ export default function Billing({
         });
       }
       switch (meioPagamento) {
-        case "cartao": {
-          // setCartao(response);
-        }
+        case "cartao":
+          setCartao(response);
+          break;
         case "pix":
           setPix(response);
           break;
@@ -901,6 +918,17 @@ export default function Billing({
             >
               Copiar código de barras
             </button>
+          </section>
+        )}
+
+        {cartao && (
+          <section className="flex flex-col items-center justify-center gap-5">
+            <h2 className="text-2xl mt-5 font-bold">
+              Status do pagamento:{" "}
+              <span className="bg-[var(--primary)] p-2 rounded-md">
+                {cartao.status}
+              </span>
+            </h2>
           </section>
         )}
 
