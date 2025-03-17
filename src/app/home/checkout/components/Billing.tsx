@@ -157,7 +157,7 @@ export default function Billing({
       });
 
       const issuer = await mp.getIssuers({
-        paymentMethodId: "mastercard",
+        paymentMethodId: "master",
         bin: data.numeroCartao.replace(/\s+/g, "").slice(0, 6),
       });
 
@@ -488,10 +488,10 @@ export default function Billing({
               <select
                 id="form-checkout__issuer"
                 {...register("issuer")}
-                defaultValue={"mastercard"}
+                defaultValue={"master"}
                 className="hidden"
               >
-                <option value="mastercard">Mastercard</option>
+                <option value="master">Mastercard</option>
                 <option value="visa">Visa</option>
                 <option value="amex">American Express</option>
                 <option value="diners">Diners Club</option>
@@ -760,6 +760,7 @@ export default function Billing({
                     errors.parcelas ? "border-red-400" : "border-gray-300"
                   }`}
                 >
+                  <option value="Selecionar">Selecionar</option>
                   {Array.from({ length: 5 }, (_, i) => (
                     <option
                       key={i + 1}
