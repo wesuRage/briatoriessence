@@ -198,7 +198,15 @@ export default function Billing({
               id: "form-checkout__issuer",
             },
           },
-          callbacks: {},
+          callbacks: {
+            onFormMounted: (error: any) => console.log(error),
+            onCardTokenReceived: (error: any, data: any) =>
+              console.log(error, data),
+            onSubmit: (event: any) => {
+              event.preventDefault();
+              console.log("Enviado");
+            },
+          },
           processingMode: "aggregator",
         })
         .getCardFormData();
