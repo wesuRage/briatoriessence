@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         { status: 403 }
       );
     }
-    const paymentId = data.id;
+    const paymentId = data?.id;
     const paymentId2 = resource;
 
     const payment = new Payment(client);
