@@ -176,7 +176,7 @@ export default function Billing({
         pedido: pedido,
         parcelas: data.parcelas,
         total: Number(pedido.total),
-        metodo: "credit_card",
+        metodo: id,
         token: token.id,
         issuer_id: issuerOptions[0].id,
         payer: {
