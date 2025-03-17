@@ -154,22 +154,27 @@ export default function Billing({
         securityCode: data.cvv,
         identificationType: data.tipoDocumento,
         identificationNumber: data.cpf.replace(/\D/g, ""),
+        cardExpirationMonth: data.validade.split("/")[0],
+        cardExpirationYear: `20${data.validade.split("/")[1]}`,
       });
 
       const bin = data.numeroCartao.replace(/\s+/g, "").substring(0, 6);
 
-      const {results} = await mp.getPaymentMethods({ bin })
+      const { results } = await mp.getPaymentMethods({ bin });
       const paymentMethod = results[0];
       const { additional_info_needed, issuer, id } = paymentMethod;
       let issuerOptions = [issuer];
 
       if (additional_info_needed.includes("issuer_id")) {
-        const issuersResponse = await mp.getIssuers({ paymentMethodId: id, bin });
+        const issuersResponse = await mp.getIssuers({
+          paymentMethodId: id,
+          bin,
+        });
         issuerOptions = issuersResponse.map((issuer: any) => ({
           ...issuer,
           default: false,
         }));
-      } 
+      }
 
       const amount = Number(parseFloat(pedido.total).toFixed(2));
 
@@ -775,15 +780,19 @@ export default function Billing({
                   }`}
                 >
                   <option value="Selecionar">Selecionar</option>
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <option
-                      key={i + 1}
-                      value={i + 1}
-                      className="flex justify-between"
-                    >
-                      {i + 1}x de R${(pedido.total / (i + 1)).toFixed(2)}
-                    </option>
-                  ))}
+                  {Array.from({ length: 5 }, (_, i) => {
+                    if (Number((pedido.total / (i + 1)).toFixed(2)) > 5) {
+                      return (
+                        <option
+                          key={i + 1}
+                          value={i + 1}
+                          className="flex justify-between"
+                        >
+                          {i + 1}x de R${(pedido.total / (i + 1)).toFixed(2)}
+                        </option>
+                      );
+                    }
+                  })}
                 </select>
                 <div className="absolute cursor-default pointer-events-none top-1/2 transform -translate-y-1/2 left-3">
                   <p>
