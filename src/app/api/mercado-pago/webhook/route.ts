@@ -12,8 +12,6 @@ export async function POST(req: Request) {
     const dados = await req.json();
     const { type, data, topic, resource } = dados;
 
-    console.log(dados);
-
     if (type != "payment" && topic != "payment") {
       return NextResponse.json(
         { status: "error", data: "Forbidden" },

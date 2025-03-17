@@ -540,6 +540,8 @@ export default function Billing({
                 <option value="discover">Discover</option>
               </select>
 
+              <input type="hidden" id="deviceId" />
+
               <div className="relative w-full" id="form-checkout__cardNumber">
                 <input
                   type="text"
