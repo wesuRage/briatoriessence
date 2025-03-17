@@ -157,7 +157,7 @@ export default function Billing({
       });
 
       const issuer = await mp.getIssuers({
-        paymentMethodId: data.issuer,
+        paymentMethodId: "mastercard",
         bin: data.numeroCartao.replace(/\s+/g, "").slice(0, 6),
       });
 
