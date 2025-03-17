@@ -157,13 +157,13 @@ export default function Billing({
       });
 
       const response = await axios.post("/api/mercado-pago/create-checkout", {
-        userId: session?.user.id,
+        userid: session?.user.id,
         pedido: pedido,
         parcelas: data.parcelas,
         total: Number(pedido.total),
         metodo: "credit_card",
         token: token.id,
-        issuer: data.issuer,
+        issuer_id: data.issuer,
         payer: {
           email: data.email,
           cpf: data.cpf.replace(/\D/g, ""),
