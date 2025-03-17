@@ -46,7 +46,6 @@ export async function POST(req: Request) {
     });
 
     const usuarioNome = usuario?.name.split(" ");
-    console.log(usuarioNome)
 
     // Estrutura de dados para o Mercado Pago
     const paymentData = {

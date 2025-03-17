@@ -139,6 +139,18 @@ export default function Billing({
     carregarDados();
   }, []);
 
+  function getDeviceId() {
+    let deviceId = localStorage.getItem("device_id");
+  
+    if (!deviceId) {
+      // Gerar um device_id único, por exemplo, usando uma UUID
+      deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem("device_id", deviceId);  // Armazenar para futuras requisições
+    }
+  
+    return deviceId;
+  }  
+
   const processarPagamentoCartao = async (data: BillingCardData) => {
     try {
       setProcessing(true);
@@ -176,9 +188,9 @@ export default function Billing({
         }));
       }
 
-      console.log(await mp.getIdentificationTypes())
-
       const amount = Number(parseFloat(pedido.total).toFixed(2));
+
+      
 
       const response = await axios.post("/api/mercado-pago/create-checkout", {
         userid: session?.user.id,
@@ -192,7 +204,7 @@ export default function Billing({
           email: data.email,
           cpf: data.cpf.replace(/\D/g, ""),
         },
-        device_id: "12345678",
+        device_id: getDeviceId(),
       });
 
       if (response.data.status === "pago") {
@@ -245,8 +257,6 @@ export default function Billing({
         },
       });
 
-      console.log(await response.data);
-
       if (response.data.status === "pendente") {
         await finalizarPedido("boleto", response.data);
       }
@@ -261,7 +271,6 @@ export default function Billing({
   const finalizarPedido = async (meioPagamento: string, response: any) => {
     try {
       for (const produto of pedido.produtos) {
-        console.log(produto);
         await axios.delete("/api/usuario/carrinho", {
           data: { produtoId: produto.productID },
         });

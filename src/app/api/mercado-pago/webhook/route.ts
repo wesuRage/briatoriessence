@@ -11,8 +11,6 @@ export async function POST(req: Request) {
   try {
     const { data, type } = await req.json();
 
-    console.log({ data, type });
-
     if (type != "payment") {
       console.log(type);
       return NextResponse.json(
