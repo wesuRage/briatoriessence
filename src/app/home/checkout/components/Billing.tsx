@@ -143,7 +143,7 @@ export default function Billing({
       setProcessing(true);
 
       // @ts-ignore
-      const mercadopago = new MercadoPago(
+      const mp = new MercadoPago(
         process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
       );
 
@@ -194,15 +194,27 @@ export default function Billing({
           placeholder: "Issuer",
         },
       };
-  
+
       // Inicializa os campos seguros
-      const fields = mercadopago.fields({ form: formConfig });
-  
+      const cardNumberField = mp.fields.create("cardNumber", {
+        placeholder: "Número do cartão",
+      });
+      cardNumberField.mount("form-checkout__cardNumber");
+
+      const expirationDateField = mp.fields.create("expirationDate", {
+        placeholder: "MM/AAAA",
+      });
+      expirationDateField.mount("form-checkout__expirationDate");
+
+      const securityCodeField = mp.fields.create("securityCode", {
+        placeholder: "Código de segurança",
+      });
+      securityCodeField.mount("form-checkout__securityCode");
+
       // Configura o cardForm com os campos seguros
-      const cardForm = mercadopago.cardForm({
+      const cardForm = mp.cardForm({
         amount: String(pedido.total),
-        form: { id: "form-checkout" }, // Apenas o ID do formulário aqui
-        fields, // Passa os campos seguros
+        form: formConfig, // Apenas o ID do formulário aqui
         callbacks: {
           onFormMounted: (error: any) => {
             if (error) {
@@ -213,12 +225,12 @@ export default function Billing({
           },
           onSubmit: async (event: any) => {
             event.preventDefault();
-  
+
             // Cria o token do cartão usando os campos seguros
-            const token = await fields.createCardToken();
-  
+            const token = await mp.fields.createCardToken();
+            
             console.log("Token gerado:", token);
-  
+
             // Envia os dados para a API
             const response = await axios.post(
               "/api/mercado-pago/create-checkout",
@@ -234,7 +246,7 @@ export default function Billing({
               },
               { headers: { "Content-Type": "application/json" } }
             );
-  
+
             if (response.data.status === "pago") {
               await finalizarPedido("cartao", response.data);
               advanceTo("success");
