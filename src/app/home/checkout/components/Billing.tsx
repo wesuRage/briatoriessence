@@ -105,7 +105,9 @@ export default function Billing({
 
     const checkPaymentStatus = async () => {
       try {
-        const response = await fetch(`/api/payments/${cartao.payment_id}/status`);
+        const response = await fetch(
+          `/api/payments/${cartao.payment_id}/status`
+        );
         const data = await response.json();
 
         if (data.status === "pago") {
@@ -516,7 +518,9 @@ export default function Billing({
             <h3 className="text-lg font-semibold">
               Pagamento com Cartão de Crédito ou Débito
             </h3>
-            <p className="text-gray-400 my-4">Seus dados bancários não serão armazenados.</p>
+            <p className="text-gray-400 my-4">
+              Seus dados bancários não serão armazenados.
+            </p>
             <form
               id="form-checkout"
               onSubmit={handleSubmit(processarPagamentoCartao)}
@@ -839,6 +843,17 @@ export default function Billing({
                 )}
               </div>
 
+              {cartao && (
+                <section className="flex flex-col items-center justify-center gap-5">
+                  <h2 className="text-2xl mt-5 font-bold">
+                    Status do pagamento:{" "}
+                    <span className="bg-[var(--primary)] p-2 rounded-md">
+                      {cartao.status}
+                    </span>
+                  </h2>
+                </section>
+              )}
+
               <section className="flex gap-4 mt-6">
                 <button
                   onClick={cancelarPedido}
@@ -966,17 +981,6 @@ export default function Billing({
             >
               Copiar código de barras
             </button>
-          </section>
-        )}
-
-        {cartao && (
-          <section className="flex flex-col items-center justify-center gap-5">
-            <h2 className="text-2xl mt-5 font-bold">
-              Status do pagamento:{" "}
-              <span className="bg-[var(--primary)] p-2 rounded-md">
-                {cartao.status}
-              </span>
-            </h2>
           </section>
         )}
 
