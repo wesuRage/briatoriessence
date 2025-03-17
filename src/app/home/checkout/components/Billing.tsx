@@ -101,6 +101,32 @@ export default function Billing({
   });
 
   useEffect(() => {
+    if (!cartao) return; // Não faz nada se não houver paymentId
+
+    const checkPaymentStatus = async () => {
+      try {
+        const response = await fetch(`/api/payments/${cartao.payment_id}/status`);
+        const data = await response.json();
+
+        if (data.status === "pago") {
+          setCartao((prev: any) => ({ ...prev, status: "pago" }));
+          clearInterval(interval); // Para o intervalo quando o pagamento for aprovado
+          router.push(`/home/checkout/status?payment=${cartao.payment_id}`);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar status:", error);
+        clearInterval(interval); // Para o intervalo em caso de erro
+      }
+    };
+
+    // Inicia o intervalo para verificar o status a cada 5 segundos
+    const interval = setInterval(checkPaymentStatus, 5000);
+
+    // Limpa o intervalo quando o componente é desmontado
+    return () => clearInterval(interval);
+  }, [cartao?.payment_id]);
+
+  useEffect(() => {
     if (!pix) return; // Não faz nada se não houver paymentId
 
     const checkPaymentStatus = async () => {
@@ -194,7 +220,7 @@ export default function Billing({
         },
       });
 
-      if (response.data.status === "pago") {
+      if (response.data.status === "pending") {
         await finalizarPedido("cartao", response.data);
       }
     } catch (error) {
@@ -492,6 +518,7 @@ export default function Billing({
             <h3 className="text-lg font-semibold mb-4">
               Pagamento com Cartão de Crédito ou Débito
             </h3>
+            <p>Seus dados bancários não serão armazenados.</p>
             <form
               id="form-checkout"
               onSubmit={(e) => {
