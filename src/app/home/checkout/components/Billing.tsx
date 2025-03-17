@@ -176,9 +176,9 @@ export default function Billing({
         }));
       }
 
-      const amount = Number(parseFloat(pedido.total).toFixed(2));
+      console.log(await mp.getIdentificationTypes())
 
-      console.log(session?.user.id);
+      const amount = Number(parseFloat(pedido.total).toFixed(2));
 
       const response = await axios.post("/api/mercado-pago/create-checkout", {
         userid: session?.user.id,
@@ -192,6 +192,7 @@ export default function Billing({
           email: data.email,
           cpf: data.cpf.replace(/\D/g, ""),
         },
+        device_id: "12345678",
       });
 
       if (response.data.status === "pago") {
