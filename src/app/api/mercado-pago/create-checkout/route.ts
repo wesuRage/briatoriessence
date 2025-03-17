@@ -5,7 +5,12 @@ import axios from "axios";
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
-  options: { timeout: 5000 },
+  options: {
+    timeout: 5000,
+    idempotencyKey: `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 15)}`,
+  },
 });
 
 export async function POST(req: Request) {
@@ -110,9 +115,6 @@ export async function POST(req: Request) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN}`,
       "X-meli-session-id": device_id,
-      "X-Idempotency-Key": `${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2, 15)}`,
     };
 
     // Requisição para a API do Mercado Pago
@@ -180,7 +182,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(responseData, { status: 200 });
   } catch (error) {
-    console.error(error);
+    console.error("Erro ao criar pagamento:", error);
     return NextResponse.json({ error }, { status: 500 });
   }
 }
