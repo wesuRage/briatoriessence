@@ -148,77 +148,37 @@ export default function Billing({
         process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY!
       );
 
-      // const token = await mp.createCardToken({
-      //   cardholderName: data.nomeTitular,
-      //   cardNumber: data.numeroCartao.replace(/\s+/g, ""),
-      //   securityCode: data.cvv,
-      //   identificationType: data.tipoDocumento,
-      //   identificationNumber: data.cpf.replace(/\D/g, ""),
-      // });
+      const token = await mp.createCardToken({
+        cardholderName: data.nomeTitular,
+        cardNumber: data.numeroCartao.replace(/\s+/g, ""),
+        securityCode: data.cvv,
+        identificationType: data.tipoDocumento,
+        identificationNumber: data.cpf.replace(/\D/g, ""),
+      });
 
-      const {
-        paymentMethodId,
-        issuerId,
-        cardholderEmail: email,
-        amount,
-        token,
-        installments,
-        identificationNumber,
-        identificationType,
-      } = mp
-        .cardForm({
-          amount: String(pedido.total),
-          form: {
-            id: "form-checkout",
-            cardholderName: {
-              id: "form-checkout__cardholderName",
-            },
-            cardholderEmail: {
-              id: "form-checkout__cardholderEmail",
-            },
-            cardNumber: {
-              id: "form-checkout__cardNumber",
-            },
-            expirationDate: {
-              id: "form-checkout__expirationDate",
-            },
-            securityCode: {
-              id: "form-checkout__securityCode",
-            },
-            installments: {
-              id: "form-checkout__installments",
-            },
-            identificationType: {
-              id: "form-checkout__identificationType",
-            },
-            identificationNumber: {
-              id: "form-checkout__identificationNumber",
-            },
-            issuer: {
-              id: "form-checkout__issuer",
-            },
-          },
-          callbacks: {
-            onFormMounted: (error: any) => console.log(error),
-            onCardTokenReceived: (error: any, data: any) =>
-              console.log(error, data),
-            onSubmit: (event: any) => {
-              event.preventDefault();
-              console.log("Enviado");
-            },
-          },
-          processingMode: "aggregator",
-        })
-        .getCardFormData();
+      const bin = data.numeroCartao.replace(/\s+/g, "").substring(0, 6);
+
+      const {results} = await mp.getPaymentMethods({ bin })
+      const paymentMethod = results[0];
+      const { additional_info_needed, issuer, id } = paymentMethod;
+      let issuerOptions = [issuer];
+
+      if (additional_info_needed.includes("issuer_id")) {
+        const issuersResponse = await mp.getIssuers({ paymentMethodId: id, bin });
+        issuerOptions = issuersResponse.map((issuer: any) => ({
+          ...issuer,
+          default: false,
+        }));
+      } 
 
       const response = await axios.post("/api/mercado-pago/create-checkout", {
         userid: session?.user.id,
         pedido: pedido,
         parcelas: data.parcelas,
         total: Number(pedido.total),
-        metodo: paymentMethodId,
-        token: token,
-        issuer_id: issuerId,
+        metodo: "credit_card",
+        token: token.id,
+        issuer_id: issuerOptions[0].id,
         payer: {
           email: data.email,
           cpf: data.cpf.replace(/\D/g, ""),
