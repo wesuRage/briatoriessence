@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     const paymentData = {
       transaction_amount: total,
       description: "Aquisição de cosmético(s)",
-      paymentMethodId: metodo === "credit_card" ? "credit_card" : metodo,
+      payment_method_id: metodo === "credit_card" ? "credit_card" : metodo,
       installments: parcelas,
       payer: {
         email: payer.email,
