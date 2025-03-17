@@ -157,8 +157,8 @@ export default function Billing({
       });
 
       const issuer = await mp.getIssuers({
-        paymentMethodId: "master",
-        bin: data.numeroCartao.replace(/\s+/g, "").slice(0, 6),
+        paymentMethodId: data.issuer,
+        bin: data.numeroCartao.replace(/\s+/g, ""),
       });
 
       const response = await axios.post("/api/mercado-pago/create-checkout", {
