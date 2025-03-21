@@ -60,6 +60,8 @@ export async function POST(req: Request) {
       payment_method_id: metodo,
       installments: parcelas,
       payer: {
+        type: "customer",
+        entity_type: "individual",
         email: payer.email,
         first_name: usuarioNome![0], // Nome do comprador
         last_name: usuarioNome![usuarioNome?.length! - 1], // Sobrenome do comprador
@@ -183,8 +185,8 @@ export async function POST(req: Request) {
     };
 
     return NextResponse.json(responseData, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao criar pagamento:", error);
-    return NextResponse.json({ error }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
