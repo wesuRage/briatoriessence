@@ -113,7 +113,7 @@ export async function POST(req: Request) {
 
     const headers = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN!}`,
       "X-meli-session-id": device_id,
     };
 
@@ -125,6 +125,8 @@ export async function POST(req: Request) {
     );
 
     const result = await response.data;
+
+    console.log(result);
 
     // Atualização do pedido no banco de dados
     const userPedido = await prisma.pedido.create({
