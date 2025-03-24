@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
 import { MercadoPagoConfig, Payment } from "mercadopago";
 import prisma from "../../../../../prisma";
-import axios from "axios";
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN!,
   options: {
     timeout: 5000,
-    idempotencyKey: `${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(2, 15)}`,
   },
 });
 
@@ -113,22 +109,16 @@ export async function POST(req: Request) {
       }),
     };
 
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.MERCADO_PAGO_ACCESS_TOKEN!}`,
-      "X-meli-session-id": device_id,
-    };
-
     // Requisição para a API do Mercado Pago
-    const response = await axios.post(
-      "https://api.mercadopago.com/v1/payments",
-      paymentData,
-      { headers }
-    );
-
-    const result = await response.data;
-
-    console.log(result);
+    const result = await payment.create({
+      body: paymentData,
+      requestOptions: {
+        idempotencyKey: `${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(2, 15)}`,
+        meliSessionId: device_id,
+      },
+    });
 
     // Atualização do pedido no banco de dados
     const userPedido = await prisma.pedido.create({
