@@ -41,7 +41,7 @@ export async function PATCH(
     const { codigoRastreio } = await req.json();
 
     const data = await prisma.pedido.update({
-      where: { id: pedido },
+      where: { pagamentoId: Number(pedido) },
       data: { codigoRastreio },
     });
 
