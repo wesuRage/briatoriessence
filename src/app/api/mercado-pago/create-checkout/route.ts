@@ -168,7 +168,6 @@ export async function POST(req: Request) {
         { status: 409 }
       );
 
-    // Resposta com dados adicionais para PIX
     const responseData = {
       status: result.status === "approved" ? "pago" : "pendente",
       pedido_id: userPedido.id,
@@ -186,7 +185,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(responseData, { status: 200 });
   } catch (error: any) {
-    console.error(error);
-    return NextResponse.json({ error: error }, { status: 500 });
+    console.error(error.response);
+    return NextResponse.json({ error: error.response }, { status: 500 });
   }
 }
