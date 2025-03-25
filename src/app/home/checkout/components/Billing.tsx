@@ -296,7 +296,7 @@ export default function Billing({
     const notificationResponse = await axios.post("/api/usuario/notifications", {
       title: "Pedido Finalizado",
       email: session?.user?.email, // O email do usuário que fez o pedido
-      href: `/home/meu-perfil/pedidos/${payment_id}`, // Link para o detalhe do pedido
+      href: `/home/pedidos/${payment_id}`, // Link para o detalhe do pedido
     });
 
     if (notificationResponse.status !== 201) {
@@ -305,7 +305,7 @@ export default function Billing({
 
     const notificationResponseAdmin = await axios.post("/api/usuario/notifications", {
       title: "Pedido pendente",
-      email: process.env.ADMIN_EMAIL1, // O email do usuário que fez o pedido
+      email: process.env.NEXT_PUBLIC_ADMIN_EMAIL1, // O email do usuário que fez o pedido
       href: `/dashboard/pedidos/${payment_id}`, // Link para o detalhe do pedido
     });
 
