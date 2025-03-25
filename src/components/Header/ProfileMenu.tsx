@@ -8,6 +8,7 @@ import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 import { IoCartOutline } from "react-icons/io5";
 import axios from "axios";
+import { FaCircleExclamation } from "react-icons/fa6";
 
 interface ProfileMenuProps {
   session: Session | null;
@@ -163,24 +164,26 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
           >
             <GoBell className="text-4xl" />
             {unreadCount > 0 && (
-              <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+              <span className="absolute top-0 right-0 bg-black text-[var(--primary)] rounded-full w-5 h-5 flex items-center justify-center text-xs">
                 {unreadCount}
               </span>
             )}
           </div>
           {showNotifications && (
-            <div className="absolute top-full right-0 mt-2 w-64 bg-white shadow-md border border-gray-300 z-50 rounded-md">
+            <div className="absolute top-full right-0 mt-2 w-56 bg-white shadow-md border border-gray-300 z-50 rounded-md">
               <ul>
                 {notifications.length > 0 ? (
                   notifications.map((notif: any) => (
                     <li
                       key={notif.id}
-                      className={`p-2 cursor-pointer ${
-                        notif.seen ? "bg-gray-50" : "bg-white"
+                      className={`px-2 py-4 cursor-pointer ${
+                        notif.seen ? "bg-gray-100" : "bg-gray-50"
                       }`}
                       onClick={() => markAsRead(notif.id)}
                     >
-                      {notif.title}
+                      <p className="flex items-center gap-2">
+                        {!notif.seen && <FaCircleExclamation className="text-[var(--primary)]" />} {notif.title}
+                      </p>
                     </li>
                   ))
                 ) : (
@@ -198,7 +201,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
             className="cursor-pointer shadow-md rounded-md p-2 w-[3.3em] h-[3.3em] flex justify-center items-center transition-colors"
           >
             <IoCartOutline className="text-4xl" />
-            <span className="absolute top-0 right-0 bg-black text-[var(--primary)] rounded-full p-1 py-0.5 text-xs">
+            <span className="absolute top-0 right-0 bg-black text-[var(--primary)] rounded-full w-5 h-5 flex items-center justify-center text-xs">
               {cartItemCount}
             </span>
           </button>
