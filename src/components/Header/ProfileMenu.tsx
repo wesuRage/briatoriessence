@@ -135,11 +135,11 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                 {session?.user?.name}
               </li>
               <li className="p-2 hover:bg-gray-100">
-                <Link href="/home/meu-perfil" className="block w-full">
-                  Meu Perfil
+                <Link href="/home/pedidos" className="block w-full">
+                  Meus pedidos
                 </Link>
               </li>
-              <hr />
+              <hr className="border border-gray-100" />
               <li className="p-2 hover:bg-gray-100">
                 <button
                   onClick={() => {
