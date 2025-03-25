@@ -40,10 +40,12 @@ export default function Header() {
   const [shrink, setShrink] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
   const profileContainerRef = useRef<HTMLDivElement>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationContainerRef = useRef<HTMLDivElement>(null);
   const cartRef = useRef<HTMLDivElement>(null);
   const { cartItemCount, setCartItemCount } = useCart();
 
@@ -59,7 +61,20 @@ export default function Header() {
       document.removeEventListener("mousedown", handleClickOutsideCart);
   }, [showCart]);
 
-  // Fecha o menu de perfil ao clicar fora
+  useEffect(() => {
+    const handleClickOutsideProfile = (event: MouseEvent) => {
+      if (
+        notificationContainerRef.current &&
+        !notificationContainerRef.current.contains(event.target as Node)
+      ) {
+        setTimeout(() => setShowNotifications(false), 100);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutsideProfile);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutsideProfile);
+  }, [showNotifications]);
+
   useEffect(() => {
     const handleClickOutsideProfile = (event: MouseEvent) => {
       if (
@@ -137,21 +152,13 @@ export default function Header() {
                     showProfileSettings={showProfileSettings}
                     setShowProfileSettings={setShowProfileSettings}
                     profileContainerRef={profileContainerRef}
+                    showNotifications={showNotifications}
+                    setShowNotifications={setShowNotifications}
+                    notificationContainerRef={notificationContainerRef}
+                    setShowCart={setShowCart}
+                    cartItemCount={cartItemCount}
                   />
                 </li>
-                {session?.user.role != "admin" && (
-                  <li>
-                    <button
-                      onClick={() => setShowCart(true)}
-                      className="md:me-5 cursor-pointer relative shadow-md rounded-md p-2"
-                    >
-                      <p className="absolute top-0 right-0 bg-black rounded-full text-[var(--primary)] p-1 text-sm/[8px]">
-                        {cartItemCount}
-                      </p>
-                      <IoCartOutline className="text-4xl" />
-                    </button>
-                  </li>
-                )}
               </ul>
             ) : (
               <div className="flex justify-around items-center gap-2">
