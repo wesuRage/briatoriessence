@@ -164,6 +164,7 @@ export default function Header() {
               <div className="flex justify-around items-center gap-2">
                 <Skeleton className="bg-[var(--primary)] text-[var(-- )] shadow-md rounded-md p-2 min-w-[3.3em] min-h-[3.3em] flex justify-center items-center" />
                 <Skeleton className="bg-[var(--primary)] text-[var(-- )] shadow-md rounded-md p-2 min-w-[3.3em] min-h-[3.3em] flex justify-center items-center" />
+                <Skeleton className="bg-[var(--primary)] text-[var(-- )] shadow-md rounded-md p-2 min-w-[3.3em] min-h-[3.3em] flex justify-center items-center" />
               </div>
             )}
           </div>
