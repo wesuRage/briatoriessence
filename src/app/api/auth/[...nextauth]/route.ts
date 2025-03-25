@@ -35,7 +35,7 @@ async function findOrCreateUser(
         image,
         password: hashedPassword,
         role:
-          email == process.env.ADMIN_EMAIL1 || email == process.env.ADMIN_EMAIL2
+          email == process.env.NEXT_PUBLIC_ADMIN_EMAIL1 || email == process.env.NEXT_PUBLIC_ADMIN_EMAIL2
             ? "admin"
             : "user",
       },
