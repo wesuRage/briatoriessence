@@ -39,8 +39,10 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    setNotifications(notifyResponse);
-    setUnreadCount(notifyResponse.filter((notif: any) => !notif.seen).length)
+    if (notifyResponse) {
+      setNotifications(notifyResponse);
+      setUnreadCount(notifyResponse.filter((notif: any) => !notif.seen).length);
+    }
   }, [notifyResponse]);
 
   const markAsRead = async (notificationId: string) => {
@@ -74,12 +76,24 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                   notifications.map((notif: any) => (
                     <li
                       key={notif.id}
-                      className={`p-2 cursor-pointer ${
+                      className={`p-2 cursor-pointer flex justify-between ${
                         notif.seen ? "bg-gray-50" : "bg-white"
                       }`}
                       onClick={() => markAsRead(notif.id)}
                     >
-                      {notif.title}
+                      <p className="flex items-center gap-2">
+                        {!notif.seen && (
+                          <FaCircleExclamation className="text-[var(--primary)]" />
+                        )}{" "}
+                        {notif.title}
+                      </p>
+                      <p>
+                        {
+                          new Date(notif.updatedAt)
+                            .toLocaleDateString()
+                            .split(",")[0]
+                        }
+                      </p>
                     </li>
                   ))
                 ) : (
@@ -163,13 +177,23 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                   notifications.map((notif: any) => (
                     <li
                       key={notif.id}
-                      className={`px-2 py-4 cursor-pointer ${
+                      className={`px-2 py-4 cursor-pointer flex justify-between ${
                         notif.seen ? "bg-gray-100" : "bg-gray-50"
                       }`}
                       onClick={() => markAsRead(notif.id)}
                     >
                       <p className="flex items-center gap-2">
-                        {!notif.seen && <FaCircleExclamation className="text-[var(--primary)]" />} {notif.title}
+                        {!notif.seen && (
+                          <FaCircleExclamation className="text-[var(--primary)]" />
+                        )}{" "}
+                        {notif.title}
+                      </p>
+                      <p>
+                        {
+                          new Date(notif.updatedAt)
+                            .toLocaleDateString()
+                            .split(",")[0]
+                        }
                       </p>
                     </li>
                   ))
