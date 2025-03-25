@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
+import { GoSearch } from "react-icons/go";
 
 interface SearchBarProps {
   searchOpen: boolean;
@@ -184,14 +185,14 @@ function SearchBarContent({
           className="w-full bg-white outline-none h-[3rem] hidden md:block border-gray-400 rounded-md shadow-md px-4 py-1 text-xl"
         />
       )}
-      <CiSearch
+      <GoSearch
         id="mobile"
-        className="p-2 text-4xl md:hidden block w-[3.4rem] h-[3.4rem] cursor-pointer rounded-md shadow-md ms-2"
+        className="p-1 text-4xl md:hidden block w-[3.4rem] h-[3.4rem] cursor-pointer rounded-md shadow-md ms-2"
         onClick={handleSearchMobile}
       />
-      <CiSearch
+      <GoSearch
         onClick={handleSearch}
-        className="p-2 text-4xl w-[3.4rem] h-[3.3rem] hidden md:block cursor-pointer rounded-md shadow-md ms-2"
+        className="p-1 text-4xl w-[3.4rem] h-[3.3rem] hidden md:block cursor-pointer rounded-md shadow-md ms-2"
       />
       {isFocused && results.length > 0 && (
         <div
