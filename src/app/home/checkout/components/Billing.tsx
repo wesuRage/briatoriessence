@@ -293,7 +293,7 @@ export default function Billing({
   };
 
   const notify = async (payment_id: number) => {
-    const notificationResponse = await axios.post("/api/notifications", {
+    const notificationResponse = await axios.post("/api/usuario/notifications", {
       title: "Pedido Finalizado",
       email: session?.user?.email, // O email do usuário que fez o pedido
       href: `/home/meu-perfil/pedidos/${payment_id}`, // Link para o detalhe do pedido
@@ -303,7 +303,7 @@ export default function Billing({
       console.error("Erro ao enviar notificação:", notificationResponse.data);
     }
 
-    const notificationResponseAdmin = await axios.post("/api/notifications", {
+    const notificationResponseAdmin = await axios.post("/api/usuario/notifications", {
       title: "Pedido pendente",
       email: process.env.ADMIN_EMAIL1, // O email do usuário que fez o pedido
       href: `/dashboard/pedidos/${payment_id}`, // Link para o detalhe do pedido
