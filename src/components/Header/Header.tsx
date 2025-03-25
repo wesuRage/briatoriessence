@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { IoCartOutline } from "react-icons/io5";
 import AnnouncementBanner from "./AnnouncementBanner";
 import Logo from "./Logo";
 import SearchBar from "./SearchBar";
@@ -11,6 +10,8 @@ import CartModal from "./CartModal";
 import NavigationMenu from "./NavigationMenu";
 import Skeleton from "react-loading-skeleton";
 import { useCart } from "../contexts/CartContext";
+import { useNotify } from "../contexts/NotifyContext";
+import axios from "axios";
 
 const menuItems = [
   { href: "/home#sobre", label: "Sobre" },
@@ -48,6 +49,7 @@ export default function Header() {
   const notificationContainerRef = useRef<HTMLDivElement>(null);
   const cartRef = useRef<HTMLDivElement>(null);
   const { cartItemCount, setCartItemCount } = useCart();
+  const { notifyResponse, setNotifyResponse } = useNotify();
 
   // Fecha o carrinho ao clicar fora
   useEffect(() => {
@@ -106,8 +108,8 @@ export default function Header() {
 
   const fetchCartItemCount = async () => {
     if (session) {
-      const response = await fetch("/api/usuario/carrinho");
-      const data = await response.json();
+      const response = await axios.get("/api/usuario/carrinho");
+      const data = await response.data;
       if (data.status === "success" && data.data) {
         const itemCount = data.data.products.reduce(
           (acc: number, item: any) => acc + item.quantidade,
@@ -118,8 +120,19 @@ export default function Header() {
     }
   };
 
+  const fetchNotifyItemCount = async () => {
+    if (session) {
+      const response = await axios.get("/api/usuario/notifications");
+      const data = await response.data;
+      if (data.status === "success" && data.data) {
+        setNotifyResponse(data.data);
+      }
+    }
+  };
+
   useEffect(() => {
     fetchCartItemCount();
+    fetchNotifyItemCount();
   }, [session]);
 
   return (
@@ -157,6 +170,7 @@ export default function Header() {
                     notificationContainerRef={notificationContainerRef}
                     setShowCart={setShowCart}
                     cartItemCount={cartItemCount}
+                    notifyResponse={notifyResponse}
                   />
                 </li>
               </ul>

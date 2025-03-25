@@ -20,6 +20,7 @@ interface ProfileMenuProps {
   notificationContainerRef: React.RefObject<HTMLDivElement | null>;
   setShowCart: (show: boolean) => void;
   cartItemCount: number;
+  notifyResponse: any;
 }
 
 const ProfileMenu: React.FC<ProfileMenuProps> = ({
@@ -32,33 +33,19 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
   notificationContainerRef,
   setShowCart,
   cartItemCount,
+  notifyResponse,
 }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (session) {
-      fetchNotifications();
-    }
-  }, [session]);
-
-  const fetchNotifications = async () => {
-    try {
-      const response = await axios.get("/api/usuario/notifications");
-      const data = await response.data;
-      if (data.status === "success") {
-        setNotifications(data.data);
-        setUnreadCount(data.data.filter((notif: any) => !notif.seen).length);
-      }
-    } catch (error) {
-      console.error("Failed to fetch notifications:", error);
-    }
-  };
+    setNotifications(notifyResponse);
+    setUnreadCount(notifyResponse.filter((notif: any) => !notif.seen).length)
+  }, [notifyResponse]);
 
   const markAsRead = async (notificationId: string) => {
     try {
       await axios.patch("/api/usuario/notifications", { notificationId });
-      fetchNotifications();
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
     }
