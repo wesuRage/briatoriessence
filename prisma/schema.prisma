@@ -14,17 +14,27 @@ datasource db {
 }
 
 model User {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  email       String  @unique
-  name        String
-  image       String?
-  password    String?
-  role        String  @default("user")
-  cart        Cart[]
-  cpf         String?
-  address     Address?
-  telefone    String?
-  pedidos     Pedido[]
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  email        String  @unique
+  name         String
+  image        String?
+  password     String?
+  role         String  @default("user")
+  cart         Cart[]
+  cpf          String?
+  address      Address?
+  telefone     String?
+  pedidos      Pedido[]
+  notification Notification[]
+}
+
+model Notification {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+  title  String
+  href   String
+  seen   Boolean
 }
 
 model Address {
