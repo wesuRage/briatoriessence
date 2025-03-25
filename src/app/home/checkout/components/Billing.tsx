@@ -30,7 +30,6 @@ export default function Billing({
   const [activeButton, setActiveButton] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [pix, setPix] = useState<any>(null);
-  const [boleto, setBoleto] = useState<any>(null);
   const [cartao, setCartao] = useState<any>(null);
 
   const cartaoSchema = z.object({
@@ -113,6 +112,7 @@ export default function Billing({
         if (data.status === "pago") {
           setCartao((prev: any) => ({ ...prev, status: "pago" }));
           clearInterval(interval); // Para o intervalo quando o pagamento for aprovado
+          notify(cartao.payment_id);
           router.push(`/home/checkout/status?payment=${cartao.payment_id}`);
         }
       } catch (error) {
@@ -139,6 +139,7 @@ export default function Billing({
         if (data.status === "pago") {
           setPix((prev: any) => ({ ...prev, status: "pago" }));
           clearInterval(interval); // Para o intervalo quando o pagamento for aprovado
+          notify(pix.payment_id);
           router.push(`/home/checkout/status?payment=${pix.payment_id}`);
         }
       } catch (error) {
@@ -268,30 +269,6 @@ export default function Billing({
     }
   };
 
-  const processarPagamentoBoleto = async () => {
-    setProcessing(true);
-    try {
-      const response = await axios.post("/api/mercado-pago/create-checkout", {
-        userId: session?.user.id,
-        pedido: pedido,
-        total: Number(pedido.total),
-        metodo: "bolbradesco",
-        payer: {
-          email: session?.user?.email,
-        },
-      });
-
-      if (response.data.status === "pendente") {
-        await finalizarPedido("boleto", response.data);
-      }
-    } catch (error) {
-      console.error("Erro no pagamento Boleto:", error);
-      alert("Erro ao gerar Boleto!");
-    } finally {
-      setProcessing(false);
-    }
-  };
-
   const finalizarPedido = async (meioPagamento: string, response: any) => {
     try {
       for (const produto of pedido.produtos) {
@@ -299,6 +276,7 @@ export default function Billing({
           data: { produtoId: produto.productID },
         });
       }
+
       switch (meioPagamento) {
         case "cartao":
           setCartao(response);
@@ -306,13 +284,33 @@ export default function Billing({
         case "pix":
           setPix(response);
           break;
-        case "boleto":
-          setBoleto(response);
           break;
       }
     } catch (error) {
       console.error("Erro ao finalizar pedido:", error);
       throw error;
+    }
+  };
+
+  const notify = async (payment_id: number) => {
+    const notificationResponse = await axios.post("/api/notifications", {
+      title: "Pedido Finalizado",
+      email: session?.user?.email, // O email do usuário que fez o pedido
+      href: `/home/meu-perfil/pedidos/${payment_id}`, // Link para o detalhe do pedido
+    });
+
+    if (notificationResponse.status !== 201) {
+      console.error("Erro ao enviar notificação:", notificationResponse.data);
+    }
+
+    const notificationResponseAdmin = await axios.post("/api/notifications", {
+      title: "Pedido pendente",
+      email: process.env.ADMIN_EMAIL1, // O email do usuário que fez o pedido
+      href: `/dashboard/pedidos/${payment_id}`, // Link para o detalhe do pedido
+    });
+
+    if (notificationResponseAdmin.status !== 201) {
+      console.error("Erro ao enviar notificação:", notificationResponse.data);
     }
   };
 
@@ -376,6 +374,8 @@ export default function Billing({
       className="w-full md:max-w-[550px] bg-white border border-gray-300 rounded-md p-4 mt-8"
     >
       <h2 className="text-2xl font-bold mb-6">Finalizar Pedido</h2>
+
+      <button onClick={() => notify(123456)}>Notificar</button>
 
       {/* Resumo do Pedido */}
       <div className="mb-8">
@@ -507,16 +507,6 @@ export default function Billing({
                   }`}
                 >
                   <FaPix className="me-2" /> Pix
-                </button>
-                <button
-                  onClick={() => show("boleto")}
-                  className={`flex items-center cursor-pointer transition-all hover:scale-110 duration-200 shadow-md p-2 rounded-md ${
-                    activeButton === "boleto"
-                      ? "bg-[var(--primary)]"
-                      : "bg-white"
-                  }`}
-                >
-                  <CiBarcode className="text-2xl me-2" /> Boleto
                 </button>
               </div>
             </div>
@@ -953,50 +943,6 @@ export default function Billing({
           </section>
         )}
 
-        {activeButton === "boleto" && (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-4">Pagamento com Boleto</h3>
-            <p className="text-gray-600">
-              O boleto será gerado após a confirmação do pedido.
-            </p>
-          </div>
-        )}
-
-        {boleto && (
-          <section className="flex flex-col items-center justify-center gap-5">
-            <h2 className="text-2xl mt-5 font-bold">
-              Status do pagamento:{" "}
-              <span className="bg-[var(--primary)] p-2 rounded-md">
-                {boleto.status}
-              </span>
-            </h2>
-
-            <Link
-              href={boleto.pdf}
-              target="_blank"
-              className="p-2 text-white bg-black rounded-md font-bold"
-            >
-              Baixar boleto
-            </Link>
-
-            <input
-              id="boleto"
-              type="text"
-              className="p-2 border border-gray-300 rounded-md w-full"
-              value={boleto.barcode}
-              disabled
-            />
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(boleto.barcode);
-              }}
-              className="cursor-pointer bg-black text-white rounded-md font-bold p-2"
-            >
-              Copiar código de barras
-            </button>
-          </section>
-        )}
-
         <section className="flex gap-4">
           {activeButton != "cartao" && (
             <button
@@ -1014,14 +960,6 @@ export default function Billing({
               className="w-[70%] mt-6 bg-[var(--primary)] text-black font-bold py-3 rounded-md hover:scale-110 cursor-pointer transition-all duration-200 shadow-md hover:shadow-xl disabled:opacity-50"
             >
               {processing ? "Gerando PIX..." : "Gerar Código PIX"}
-            </button>
-          )}
-          {activeButton === "boleto" && (
-            <button
-              onClick={processarPagamentoBoleto}
-              className="w-[70%] mt-6 bg-[var(--primary)] text-black font-bold py-3 rounded-md hover:scale-110 cursor-pointer transition-all duration-200 shadow-md hover:shadow-xl"
-            >
-              Confirmar & Gerar Boleto
             </button>
           )}
         </section>
