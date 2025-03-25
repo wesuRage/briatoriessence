@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (metodo !== "pix" && metodo !== "bolbradesco" && !token) {
+    if (metodo !== "pix" && !token) {
       console.error("Token de pagamento é necessário");
       return NextResponse.json(
         { error: "Token de pagamento é necessário" },
@@ -163,10 +163,6 @@ export async function POST(req: Request) {
       status: result.status === "approved" ? "pago" : "pendente",
       pedido_id: userPedido.id,
       payment_id: result.id,
-      ...(metodo === "bolbradesco" && {
-        pdf: result.transaction_details?.external_resource_url,
-        barcode: result.transaction_details?.barcode?.content,
-      }),
       ...(metodo === "pix" && {
         qr_code: result.point_of_interaction?.transaction_data?.qr_code,
         qr_code_base64:
