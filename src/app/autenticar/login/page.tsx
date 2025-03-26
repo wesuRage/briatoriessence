@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Main from "@/components/Main";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,13 +9,16 @@ import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import Link from "next/link";
 import { MdOutlineAccountCircle } from "react-icons/md";
 import { handleGoogleSignIn } from "@/handlers/handleGoogleSignIn";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 // Componente que utiliza useSearchParams()
 function AutenticarContent() {
   const [showPass, setShowPass] = useState<boolean>(false);
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl");
+  const {data: session} = useSession();
+  const router = useRouter();
 
   const createUserFormSchema = z.object({
     email: z
@@ -39,6 +42,10 @@ function AutenticarContent() {
   async function submitFunction(data: userFormData) {
     console.log(data);
   }
+
+  useEffect(() => {
+    if (session) router.push("/home");
+  }, [session]);
 
   return (
     <Main noSpace>
