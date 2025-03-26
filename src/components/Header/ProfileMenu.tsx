@@ -9,6 +9,7 @@ import { signOut } from "next-auth/react";
 import { IoCartOutline } from "react-icons/io5";
 import axios from "axios";
 import { FaCircleExclamation } from "react-icons/fa6";
+import { useRouter } from "next/navigation";
 
 interface ProfileMenuProps {
   session: Session | null;
@@ -37,6 +38,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
 }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     if (notifyResponse) {
@@ -45,9 +47,9 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
     }
   }, [notifyResponse]);
 
-  const markAsRead = async (notificationId: string) => {
+  const markAsRead = async (id: string) => {
     try {
-      await axios.patch("/api/usuario/notifications", { notificationId });
+      await axios.patch("/api/usuario/notifications", { notificationId: id});
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
     }
@@ -76,10 +78,10 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                   notifications.map((notif: any) => (
                     <li
                       key={notif.id}
-                      className={`p-2 cursor-pointer flex justify-between ${
+                      className={`px-2 py-4 cursor-pointer flex justify-between ${
                         notif.seen ? "bg-gray-50" : "bg-white"
                       }`}
-                      onClick={() => markAsRead(notif.id)}
+                      onClick={() => {markAsRead(notif.id); router.push(notif.href)}}
                     >
                       <p className="flex items-center gap-2">
                         {!notif.seen && (
@@ -180,7 +182,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                       className={`px-2 py-4 cursor-pointer flex justify-between ${
                         notif.seen ? "bg-gray-100" : "bg-gray-50"
                       }`}
-                      onClick={() => markAsRead(notif.id)}
+                      onClick={() => {markAsRead(notif.id); router.push(notif.href)}}
                     >
                       <p className="flex items-center gap-2">
                         {!notif.seen && (
