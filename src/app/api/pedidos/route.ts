@@ -94,13 +94,33 @@ export async function GET(req: NextRequest) {
     if (!session)
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
-    const data = await prisma.pedido.findMany();
+    // Busca todos os pedidos com seus relacionamentos
+    const pedidosComRelacionamentos = await prisma.pedido.findMany({
+      include: {
+        produtos: {
+          include: {
+            produto: true // Inclui os dados completos do produto
+          }
+        },
+        user: true // Inclui os dados do usuário se necessário
+      }
+    });
 
-    return NextResponse.json({status: "success", data});
+    // Reformata cada pedido para incluir os produtos diretamente
+    const pedidosFormatados = pedidosComRelacionamentos.map(pedido => ({
+      ...pedido, // Spread de todos os campos do pedido
+      produtos: pedido.produtos.map(item => ({
+        ...item.produto,          // Spread dos dados do produto
+        quantidade: item.quantidade, // Mantém a quantidade
+        precoUnitario: item.preco    // Mantém o preço unitário
+      }))
+    }));
+
+    return NextResponse.json({ status: "success", data: pedidosFormatados });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Erro ao criar pedido" },
+      { error: "Erro ao buscar pedidos" },
       { status: 500 }
     );
   }
