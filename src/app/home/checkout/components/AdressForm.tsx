@@ -69,7 +69,7 @@ export default function AddressForm({
         .then((response) => {
           setData(response.data.data);
         })
-        .catch((err) => console.error("Erro no viacep:", err));
+        .catch((err) => console.error(err));
     };
 
     fetchAddress();
@@ -322,7 +322,6 @@ export default function AddressForm({
           <div className="relative">
             <input
               id="cep"
-              defaultValue={data?.address?.cep ?? ""}
               minLength={8}
               maxLength={9}
               {...register("cep", {
@@ -353,7 +352,11 @@ export default function AddressForm({
           <div className="relative">
             <input
               id="estado_cidade"
-              defaultValue={data?.address?.estado_cidade ?? ""}
+              defaultValue={
+                data?.address?.estado
+                  ? `${data?.address?.estado} - ${data?.address?.cidade}`
+                  : ""
+              }
               {...register("estado_cidade", {
                 required: "Cidade é obrigatória",
               })}
