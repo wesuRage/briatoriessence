@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     const payment = new Payment(client);
 
     const usuario = await prisma.user.findUnique({
-      where: { id: userid },
+      where: { email: payer.email },
       include: { address: true },
     });
 
