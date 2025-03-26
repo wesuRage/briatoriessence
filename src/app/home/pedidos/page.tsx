@@ -23,8 +23,6 @@ export default function Pedidos() {
 
   if (!pedidos) return <h1>Carregando...</h1>;
 
-  console.log(pedidos);
-
   return (
     <Main>
       <section className="flex justify-center">
