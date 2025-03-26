@@ -136,7 +136,7 @@ export default function AddressForm({
         endereco: data,
         status: "pendente",
       };
-      
+
       sessionStorage.setItem("pedidoPendente", JSON.stringify(orderData));
 
       advanceTo("billing");
@@ -151,19 +151,18 @@ export default function AddressForm({
     input.value = phoneMask(input.value);
   };
 
-  
   const handleZipCode = (event: any) => {
     let input = event.target;
     input.value = zipCodeMask(input.value);
   };
-  
+
   const zipCodeMask = (value: string) => {
     if (!value) return "";
     value = value.replace(/\D/g, "");
     value = value.replace(/(\d{5})(\d)/, "$1-$2");
     return value;
   };
-  
+
   const mascaraCpf = (event: any) => {
     let input = event.target;
     input.value = cpfMask(input.value);
@@ -328,7 +327,7 @@ export default function AddressForm({
               maxLength={9}
               {...register("cep", {
                 required: "CEP é obrigatório",
-                onChange: (e) => handleZipCode(e)
+                onChange: (e) => handleZipCode(e),
               })}
               className={`peer h-10 w-full border rounded-md px-3 py-5 text-sm focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none ${
                 errors.cep ? "border-red-400" : "border-gray-300"
@@ -354,6 +353,7 @@ export default function AddressForm({
           <div className="relative">
             <input
               id="estado_cidade"
+              defaultValue={data?.address?.estado_cidade ?? ""}
               {...register("estado_cidade", {
                 required: "Cidade é obrigatória",
               })}
@@ -384,6 +384,7 @@ export default function AddressForm({
           <div className="relative">
             <input
               id="bairro"
+              defaultValue={data?.address?.bairro ?? ""}
               {...register("bairro", {
                 required: "Bairro é obrigatório",
               })}
@@ -413,6 +414,7 @@ export default function AddressForm({
             <div className="relative w-[70%]">
               <input
                 id="logradouro"
+                defaultValue={data?.address?.rua ?? ""}
                 {...register("logradouro", {
                   required: "Rua é obrigatória",
                 })}
