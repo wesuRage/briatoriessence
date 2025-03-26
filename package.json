@@ -19,7 +19,7 @@
     "cloudinary": "^2.5.1",
     "framer-motion": "^12.4.10",
     "mercadopago": "^2.3.0",
-    "next": "15.2.1",
+    "next": "15.2.4",
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
