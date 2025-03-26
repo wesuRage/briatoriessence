@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { FaCreditCard } from "react-icons/fa";
 import { FaPix } from "react-icons/fa6";
+import { notFound } from 'next/navigation'
 
 export default function Pedido({
   params,
@@ -23,9 +24,7 @@ export default function Pedido({
     });
   }, [params]);
 
-  if (!pedido) return <h1>Carregando...</h1>;
-
-  console.log(pedido);
+  if (!pedido) notFound();
 
   return (
     <Main>
