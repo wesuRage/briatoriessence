@@ -33,7 +33,6 @@ export async function POST(req: Request, res: NextResponse) {
         href,
         seen: false,
         userId: user.id,
-        
       },
     });
 
@@ -100,22 +99,25 @@ export async function PATCH(req: Request, res: NextResponse) {
 
     const { notificationId } = await req.json();
 
+    // Verifica se a notificação existe e se `seen` é `false`
     const notification = await prisma.notification.findFirst({
-      where: { userId: session.user.id },
+      where: {
+        id: notificationId,
+        seen: false, // Verifica se a notificação ainda não foi lida
+      },
     });
 
     if (!notification) {
       return NextResponse.json(
-        { status: "error", data: "Notification not found" },
-        { status: 401 }
+        { status: "error", data: "Notification not found or already seen" },
+        { status: 404 }
       );
     }
 
+    // Atualiza a notificação para `seen: true`
     await prisma.notification.update({
       where: {
-        id: notificationId,
-        userId: session.user.id,
-        seen: false,
+        id: notification.id, // Apenas o ID é necessário aqui
       },
       data: {
         seen: true,
