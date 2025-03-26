@@ -49,7 +49,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
 
   const markAsRead = async (id: string) => {
     try {
-      await axios.patch("/api/usuario/notifications", { notificationId: id});
+      await axios.patch("/api/usuario/notifications", { notificationId: id });
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
     }
@@ -66,14 +66,14 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
           >
             <GoBell className="text-4xl" />
             {unreadCount > 0 && (
-              <span className="absolute top-0 right-0 bg-black text-[var(--primary)] rounded-full p-1 py-0.5 text-xs">
+              <span className="absolute top-0 right-0 bg-black text-[var(--primary)] rounded-full w-5 h-5 flex items-center justify-center text-xs">
                 {unreadCount}
               </span>
             )}
           </div>
           {showNotifications && (
             <div className="absolute top-full right-0 mt-2 w-64 bg-white shadow-md border border-gray-300 z-50 rounded-md">
-              <ul>
+              <ul className="max-h-[300px]">
                 {notifications.length > 0 ? (
                   notifications.map((notif: any) => (
                     <li
@@ -81,7 +81,10 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                       className={`px-2 py-4 cursor-pointer flex justify-between ${
                         notif.seen ? "bg-gray-50" : "bg-white"
                       }`}
-                      onClick={() => {markAsRead(notif.id); router.push(notif.href)}}
+                      onClick={() => {
+                        markAsRead(notif.id);
+                        router.push(notif.href);
+                      }}
                     >
                       <p className="flex items-center gap-2">
                         {!notif.seen && (
@@ -89,7 +92,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                         )}{" "}
                         {notif.title}
                       </p>
-                      <p>
+                      <p className="text-gray-400">
                         {
                           new Date(notif.updatedAt)
                             .toLocaleDateString()
@@ -99,7 +102,9 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                     </li>
                   ))
                 ) : (
-                  <li className="p-2 text-gray-500">Não há notificações</li>
+                  <li className="px-2 py-4 text-gray-500">
+                    Não há notificações
+                  </li>
                 )}
               </ul>
             </div>
@@ -138,19 +143,22 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
               <li className="line-clamp-1 p-2 underline decoration-[var(--primary)] bg-gray-50">
                 {session?.user?.name}
               </li>
-              <li className="p-2 hover:bg-gray-100">
-                <Link href="/home/pedidos" className="block w-full">
+              <li>
+                <Link
+                  href="/home/pedidos"
+                  className="block w-full p-2 hover:bg-gray-100"
+                >
                   Meus pedidos
                 </Link>
               </li>
               <hr className="border border-gray-100" />
-              <li className="p-2 hover:bg-gray-100">
+              <li>
                 <button
                   onClick={() => {
                     signOut();
                     setShowProfileSettings(false);
                   }}
-                  className="text-red-500 cursor-pointer hover:underline w-full text-left"
+                  className="p-2 hover:bg-gray-100 text-red-500 cursor-pointer hover:underline w-full text-left"
                 >
                   Sair da conta
                 </button>
@@ -173,8 +181,8 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
             )}
           </div>
           {showNotifications && (
-            <div className="absolute top-full right-0 mt-2 w-56 bg-white shadow-md border border-gray-300 z-50 rounded-md">
-              <ul>
+            <div className="absolute top-full right-0 mt-2 w-64 bg-white shadow-md border border-gray-300 z-50 rounded-md">
+              <ul className="max-h-[300px]">
                 {notifications.length > 0 ? (
                   notifications.map((notif: any) => (
                     <li
@@ -182,7 +190,10 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                       className={`px-2 py-4 cursor-pointer flex justify-between ${
                         notif.seen ? "bg-gray-100" : "bg-gray-50"
                       }`}
-                      onClick={() => {markAsRead(notif.id); router.push(notif.href)}}
+                      onClick={() => {
+                        markAsRead(notif.id);
+                        router.push(notif.href);
+                      }}
                     >
                       <p className="flex items-center gap-2">
                         {!notif.seen && (
@@ -190,7 +201,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                         )}{" "}
                         {notif.title}
                       </p>
-                      <p>
+                      <p className="text-gray-400">
                         {
                           new Date(notif.updatedAt)
                             .toLocaleDateString()
@@ -200,7 +211,9 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({
                     </li>
                   ))
                 ) : (
-                  <li className="p-2 text-gray-500">Não há notificações</li>
+                  <li className="px-2 py-4 text-gray-500">
+                    Não há notificações
+                  </li>
                 )}
               </ul>
             </div>
