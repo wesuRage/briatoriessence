@@ -43,11 +43,18 @@ export async function POST(req: Request) {
     const payment = new Payment(client);
 
     const usuario = await prisma.user.findUnique({
-      where: { email: payer.email },
+      where: { id: userid },
       include: { address: true },
     });
 
-    const usuarioNome = usuario?.name.split(" ");
+    if (!usuario) {
+      return NextResponse.json(
+        { error: "Usuário não encontrado" },
+        { status: 404 }
+      );
+    }
+
+    const usuarioNome = usuario.name.split(" ");
 
     // Estrutura de dados para o Mercado Pago
     const paymentData = {
@@ -59,24 +66,23 @@ export async function POST(req: Request) {
         type: "customer",
         entity_type: "individual",
         email: payer.email,
-        first_name: usuarioNome![0], // Nome do comprador
-        last_name: usuarioNome![usuarioNome?.length! - 1], // Sobrenome do comprador
+        first_name: usuarioNome[0], // Nome do comprador
+        last_name: usuarioNome[usuarioNome.length - 1], // Sobrenome do comprador
         identification: {
           type: "CPF",
           number: payer.cpf,
         },
         address: {
-          // Endereço do comprador (se disponível)
-          zip_code: usuario?.address?.cep,
-          street_name: usuario?.address?.rua,
-          street_number: usuario?.address?.numero,
-          neighborhood: usuario?.address?.bairro,
-          city: usuario?.address?.cidade,
-          federal_unit: usuario?.address?.estado,
+          zip_code: usuario.address?.cep,
+          street_name: usuario.address?.rua,
+          street_number: usuario.address?.numero,
+          neighborhood: usuario.address?.bairro,
+          city: usuario.address?.cidade,
+          federal_unit: usuario.address?.estado,
         },
         phone: {
-          area_code: usuario?.telefone?.substring(0, 2),
-          number: usuario?.telefone?.substring(2),
+          area_code: usuario.telefone?.substring(0, 2),
+          number: usuario.telefone?.substring(2),
         },
       },
       notification_url: `${process.env.MERCADO_PAGO_URL}/api/mercado-pago/webhook`,
@@ -86,21 +92,21 @@ export async function POST(req: Request) {
           : "temp-reference",
       additional_info: {
         items: pedido.produtos.map((produto: any) => ({
-          id: produto.produtoId, // Código do item
-          title: produto.produto.nome, // Nome do item
-          description: produto.produto.descricao || "Sem descrição", // Descrição do item
-          category_id: "cosmético", // Categoria do item
-          quantity: produto.quantidade, // Quantidade do item
+          id: produto.produtoId,
+          title: produto.produto.nome,
+          description: produto.produto.descricao || "Sem descrição",
+          category_id: "cosmético",
+          quantity: produto.quantidade,
           unit_price:
             produto.produto.precoDes > 0
               ? produto.produto.precoDes
-              : produto.produto.precoOrg, // Preço do item
+              : produto.produto.precoOrg,
         })),
       },
-      statement_descriptor: "BRIATORI ESSENCE", // Descrição na fatura do cartão
-      binary_mode: true, // Modo binário (pagamento aprovado imediatamente)
-      capture: true, // Captura imediata dos fundos
-      issuer_id: issuer_id, // Código do emissor do meio de pagamento
+      statement_descriptor: "BRIATORI ESSENCE",
+      binary_mode: true,
+      capture: true,
+      issuer_id: issuer_id,
       ...(token && { token }),
       ...(metodo === "pix" && {
         transaction_details: {
@@ -123,6 +129,7 @@ export async function POST(req: Request) {
     // Atualização do pedido no banco de dados
     const userPedido = await prisma.pedido.create({
       data: {
+        statusEnvio: "processando",
         status: result.status === "approved" ? "pago" : "pendente",
         pagamentoId: result.id!,
         meioPagamento: metodo,
@@ -134,10 +141,14 @@ export async function POST(req: Request) {
           (total: number, item: any) => total + item.quantidade,
           0
         ),
+        address: {
+          connect: {
+            id: usuario.address?.id, // Conecta o endereço existente ao pedido
+          },
+        },
         user: {
           connect: {
             id: userid,
-            email: usuario?.email
           },
         },
         produtos: {
@@ -154,7 +165,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           status: "error",
-          data: "Não foi possível atualizar o pedido",
+          data: "Não foi possível criar o pedido",
         },
         { status: 409 }
       );

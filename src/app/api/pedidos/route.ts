@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: { cart: true },
+      include: { cart: true, address: true },
     });
 
     if (!user)
@@ -56,7 +56,6 @@ export async function POST(req: NextRequest) {
     // Criar pedido
     const pedido = await prisma.pedido.create({
       data: {
-        userId: user.id,
         produtos: {
           create: produtos.map((p: any) => ({
             produtoId: p.produtoId,
@@ -75,6 +74,17 @@ export async function POST(req: NextRequest) {
         meioPagamento,
         pagamentoId,
         status,
+        statusEnvio: "processando",
+        address: {
+          connect: {
+            id: user.address?.id!,
+          },
+        },
+        user: {
+          connect: {
+            id: user.address?.id!,
+          },
+        },
       },
     });
 
@@ -99,21 +109,21 @@ export async function GET(req: NextRequest) {
       include: {
         produtos: {
           include: {
-            produto: true // Inclui os dados completos do produto
-          }
+            produto: true, // Inclui os dados completos do produto
+          },
         },
-        user: true // Inclui os dados do usuário se necessário
-      }
+        user: true, // Inclui os dados do usuário se necessário
+      },
     });
 
     // Reformata cada pedido para incluir os produtos diretamente
-    const pedidosFormatados = pedidosComRelacionamentos.map(pedido => ({
+    const pedidosFormatados = pedidosComRelacionamentos.map((pedido) => ({
       ...pedido, // Spread de todos os campos do pedido
-      produtos: pedido.produtos.map(item => ({
-        ...item.produto,          // Spread dos dados do produto
+      produtos: pedido.produtos.map((item) => ({
+        ...item.produto, // Spread dos dados do produto
         quantidade: item.quantidade, // Mantém a quantidade
-        precoUnitario: item.preco    // Mantém o preço unitário
-      }))
+        precoUnitario: item.preco, // Mantém o preço unitário
+      })),
     }));
 
     return NextResponse.json({ status: "success", data: pedidosFormatados });
