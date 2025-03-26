@@ -7,14 +7,15 @@ import { useEffect, useState } from "react";
 export default function Produto({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ pedido: string }>;
 }) {
   const [pedido, setPedido] = useState<any>();
 
   useEffect(() => {
+    if (!params) return;
     params.then(async (resolvedParams) => {
       await axios
-        .get(`/api/pedidos/${resolvedParams.id}`)
+        .get(`/api/pedidos/${resolvedParams.pedido}`)
         .then((response) => setPedido(response.data.data));
     });
   }, [params]);
