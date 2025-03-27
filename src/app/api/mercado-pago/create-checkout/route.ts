@@ -149,6 +149,7 @@ export async function POST(req: Request) {
         user: {
           connect: {
             id: userid,
+            email: payer.email,
           },
         },
         produtos: {
