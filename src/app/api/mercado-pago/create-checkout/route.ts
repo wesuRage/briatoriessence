@@ -97,6 +97,7 @@ export async function POST(req: Request) {
           description: produto.produto.descricao || "Sem descrição",
           category_id: "cosmético",
           quantity: produto.quantidade,
+          picture_url: produto.produto.imagens[0],
           unit_price:
             produto.produto.precoDes > 0
               ? produto.produto.precoDes
