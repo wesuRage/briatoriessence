@@ -15,7 +15,7 @@ export async function GET(
     const { pedido } = await params;
 
     const data = await prisma.pedido.findUnique({
-      where: { pagamentoId: Number(pedido) }, include: {produtos: {include: {produto: true}}, address: true},
+      where: { pagamentoId: Number(pedido) }, include: {produtos: {include: {produto: true}}, address: true, user: true},
     });
 
     return NextResponse.json({ status: "success", data });
