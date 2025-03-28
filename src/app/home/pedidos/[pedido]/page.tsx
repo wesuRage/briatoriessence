@@ -4,9 +4,10 @@ import Main from "@/components/Main";
 import axios from "axios";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { FaCreditCard } from "react-icons/fa";
+import { FaCreditCard, FaHouseUser } from "react-icons/fa";
 import { FaPix } from "react-icons/fa6";
-import { notFound } from 'next/navigation'
+import { notFound } from "next/navigation";
+import Link from "next/link";
 
 export default function Pedido({
   params,
@@ -24,7 +25,14 @@ export default function Pedido({
     });
   }, [params]);
 
-  if (!pedido) notFound();
+  if (!pedido)
+    return (
+      <Main>
+        <h1>Carregando...</h1>
+      </Main>
+    );
+
+  console.log(pedido);
 
   return (
     <Main>
@@ -36,9 +44,10 @@ export default function Pedido({
           {pedido && (
             <section className="min-w-[600px] container bg-white p-2 my-2 shadow-md border border-gray-400 rounded-md">
               {pedido.produtos.map((produtoPedido: any) => (
-                <section
+                <Link
+                  href={`/home/loja/produtos/${produtoPedido.produto.nome}`}
                   key={produtoPedido.produto.id}
-                  className="flex py-3 border-b-2 border-gray-400 last:border-b-0"
+                  className="flex p-3 border-b-2 border-gray-400 last:border-b-0 hover:bg-gray-100"
                 >
                   <div className="relative w-[100px] h-[100px]">
                     <Image
@@ -70,11 +79,40 @@ export default function Pedido({
                       ).toFixed(2)}
                     </p>
                   </div>
-                </section>
+                </Link>
               ))}
               <div>
-                
+                <h2 className="text-2xl font-semibold py-4">
+                  Endereço de entrega
+                </h2>
+
+                <p className="flex items-center">
+                  <FaHouseUser className="inline text-[var(--primary)] text-2xl me-2" />
+                  {pedido.address.rua}, {pedido.address.numero},{" "}
+                  {pedido.address.complemento}, {pedido.address.bairro},{" "}
+                  {pedido.address.cep}, {pedido.address.estado} -{" "}
+                  {pedido.address.cidade}
+                </p>
+
+                <h2 className="text-2xl font-semibold py-4">
+                  Dados do destinatário
+                </h2>
+                <p>
+                  {pedido.user.name} - {pedido.user.cpf} -{" "}
+                  {pedido.user.telefone}
+                </p>
               </div>
+
+              <hr className="border border-gray-400 my-5" />
+
+              <h3 className="text-xl text-gray-700">
+                Código de rastreio:{" "}
+                <p className="text-black inline">
+                  {pedido.codigoRastreio ?? "Ainda não enviado"}
+                </p>
+              </h3>
+
+              <hr className="border border-gray-400 my-5" />
 
               <div className="mt-4">
                 <h3 className="text-xl my-1 text-gray-700">
