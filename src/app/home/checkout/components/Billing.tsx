@@ -194,9 +194,6 @@ export default function Billing({
       const { additional_info_needed, issuer, id } = paymentMethod;
       let issuerOptions = [issuer];
 
-      alert(id);
-      return;
-
       if (additional_info_needed.includes("issuer_id")) {
         const issuersResponse = await mp.getIssuers({
           paymentMethodId: id,
