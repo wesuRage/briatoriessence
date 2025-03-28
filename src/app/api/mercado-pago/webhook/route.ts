@@ -34,10 +34,18 @@ export async function POST(req: Request) {
     }
     console.log(response1, response2);
 
-    if (response1?.status === "approved" || response2?.status === "approved") {
+    if (response1?.status === "approved") {
       await axios.patch(
         `${process.env.MERCADO_PAGO_URL}/api/pedidos`,
         { status: "pago", payment_id: paymentId },
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (response2?.status === "approved") {
+      await axios.patch(
+        `${process.env.MERCADO_PAGO_URL}/api/pedidos`,
+        { status: "pago", payment_id: paymentId2 },
         { headers: { "Content-Type": "application/json" } }
       );
     }
