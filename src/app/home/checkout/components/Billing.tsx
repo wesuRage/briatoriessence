@@ -194,6 +194,9 @@ export default function Billing({
       const { additional_info_needed, issuer, id } = paymentMethod;
       let issuerOptions = [issuer];
 
+      alert(id);
+      return;
+
       if (additional_info_needed.includes("issuer_id")) {
         const issuersResponse = await mp.getIssuers({
           paymentMethodId: id,
@@ -293,21 +296,27 @@ export default function Billing({
   };
 
   const notify = async (payment_id: number) => {
-    const notificationResponse = await axios.post("/api/usuario/notifications", {
-      title: "Pedido Finalizado",
-      email: session?.user?.email, // O email do usuário que fez o pedido
-      href: `/home/pedidos/${payment_id}`, // Link para o detalhe do pedido
-    });
+    const notificationResponse = await axios.post(
+      "/api/usuario/notifications",
+      {
+        title: "Pedido Finalizado",
+        email: session?.user?.email, // O email do usuário que fez o pedido
+        href: `/home/pedidos/${payment_id}`, // Link para o detalhe do pedido
+      }
+    );
 
     if (notificationResponse.status !== 201) {
       console.error("Erro ao enviar notificação:", notificationResponse.data);
     }
 
-    const notificationResponseAdmin = await axios.post("/api/usuario/notifications", {
-      title: "Pedido pendente",
-      email: process.env.NEXT_PUBLIC_ADMIN_EMAIL1, // O email do usuário que fez o pedido
-      href: `/dashboard/pedidos/${payment_id}`, // Link para o detalhe do pedido
-    });
+    const notificationResponseAdmin = await axios.post(
+      "/api/usuario/notifications",
+      {
+        title: "Pedido pendente",
+        email: process.env.NEXT_PUBLIC_ADMIN_EMAIL1, // O email do usuário que fez o pedido
+        href: `/dashboard/pedidos/${payment_id}`, // Link para o detalhe do pedido
+      }
+    );
 
     if (notificationResponseAdmin.status !== 201) {
       console.error("Erro ao enviar notificação:", notificationResponse.data);
@@ -359,6 +368,14 @@ export default function Billing({
     v = v.replace(/\D/g, "");
     v = v.replace(/(\d{2})(\d{1,2})$/, "$1/$2");
     return v;
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+    }
   };
 
   if (loading || !pedido)
@@ -548,6 +565,7 @@ export default function Billing({
                   type="text"
                   minLength={19}
                   maxLength={19}
+                  onKeyDown={handleKeyDown}
                   {...register("numeroCartao", {
                     onChange: (e) => mascaraCartao(e),
                   })}
@@ -586,6 +604,7 @@ export default function Billing({
                     type="text"
                     minLength={5}
                     maxLength={5}
+                    onKeyDown={handleKeyDown}
                     {...register("validade", {
                       onChange: (e) => {
                         const value = validadeMask(e.target.value);
@@ -623,6 +642,7 @@ export default function Billing({
                     type="text"
                     maxLength={3}
                     minLength={3}
+                    onKeyDown={handleKeyDown}
                     {...register("cvv", {
                       maxLength: 3,
                       minLength: 3,
@@ -653,6 +673,7 @@ export default function Billing({
                 <input
                   id="form-checkout__cardholderName"
                   type="text"
+                  onKeyDown={handleKeyDown}
                   {...register("nomeTitular", {
                     onChange: (e) => {
                       const value = e.target.value.toUpperCase();
@@ -690,6 +711,7 @@ export default function Billing({
                   <select
                     id="form-checkout__identificationType"
                     defaultValue="CPF"
+                    onKeyDown={handleKeyDown}
                     {...register("tipoDocumento", {
                       onChange: (e) => {
                         const value = e.target.value;
@@ -738,6 +760,7 @@ export default function Billing({
                   <input
                     type="text"
                     id="form-checkout__identificationNumber"
+                    onKeyDown={handleKeyDown}
                     {...register("cpf", {
                       onChange: (e) => {
                         const value = e.target.value;
@@ -775,6 +798,7 @@ export default function Billing({
                 <input
                   id="form-checkout__cardholderEmail"
                   type="text"
+                  onKeyDown={handleKeyDown}
                   {...register("email")}
                   className={`peer h-10 w-full border rounded-md px-3 py-5 text-sm focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none ${
                     errors.email ? "border-red-400" : "border-gray-300"
@@ -800,6 +824,7 @@ export default function Billing({
               <div className="relative w-full">
                 <select
                   id="form-checkout__installments"
+                  onKeyDown={handleKeyDown}
                   {...register("parcelas", { valueAsNumber: true })}
                   className={`peer h-10 w-full border rounded-md px-3 py-5 text-sm focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none ${
                     errors.parcelas ? "border-red-400" : "border-gray-300"
@@ -886,6 +911,7 @@ export default function Billing({
                 <input
                   id="cpfPix"
                   type="text"
+                  onKeyDown={handleKeyDown}
                   {...register2("cpfPix", { onChange: (e) => mascaraCpf(e) })}
                   className={`peer h-10 w-full border rounded-md px-3 py-5 text-sm focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none ${
                     errors2.cpfPix ? "border-red-400" : "border-gray-300"
