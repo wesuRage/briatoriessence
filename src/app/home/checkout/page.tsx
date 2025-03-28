@@ -42,7 +42,7 @@ export default function Checkout() {
         )}
 
         {step === "billing" && (
-          <Billing session={session} advanceTo={advanceTo} />
+          <Billing session={session} />
         )}
       </AnimatePresence>
     </section>

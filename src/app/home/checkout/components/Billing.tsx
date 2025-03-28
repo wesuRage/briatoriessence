@@ -14,14 +14,10 @@ import { FaPix } from "react-icons/fa6";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { CiBarcode } from "react-icons/ci";
-import Link from "next/link";
 
 export default function Billing({
-  advanceTo,
   session,
 }: {
-  advanceTo: (targetStep: "cart" | "address" | "billing" | "success") => void;
   session: Session | null;
 }) {
   const router = useRouter();
