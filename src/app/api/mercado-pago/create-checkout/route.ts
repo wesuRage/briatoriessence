@@ -156,8 +156,7 @@ export async function POST(req: Request) {
         },
         user: {
           connect: {
-            id: userid,
-            email: payer.email,
+            id: usuario.id,
           },
         },
         produtos: {
