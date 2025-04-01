@@ -15,11 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-export default function Billing({
-  session,
-}: {
-  session: Session | null;
-}) {
+export default function Billing({ session }: { session: Session | null }) {
   const router = useRouter();
   const [pedido, setPedido] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -95,62 +91,73 @@ export default function Billing({
     resolver: zodResolver(pixSchema),
   });
 
-  useEffect(() => {
-    if (!cartao) return; // Não faz nada se não houver paymentId
-
-    const checkPaymentStatus = async () => {
-      try {
-        const response = await fetch(
-          `/api/payments/${cartao.payment_id}/status`
-        );
-        const data = await response.json();
-
-        if (data.status === "pago") {
-          setCartao((prev: any) => ({ ...prev, status: "pago" }));
-          clearInterval(interval); // Para o intervalo quando o pagamento for aprovado
-          notify(cartao.payment_id);
-          router.push(`/home/checkout/status?payment=${cartao.payment_id}`);
-        }
-      } catch (error) {
-        console.error("Erro ao verificar status:", error);
-        clearInterval(interval); // Para o intervalo em caso de erro
+  const notify = async (payment_id: number) => {
+    const notificationResponse = await axios.post(
+      "/api/usuario/notifications",
+      {
+        title: "Pedido Finalizado",
+        email: session?.user?.email, // O email do usuário que fez o pedido
+        href: `/home/pedidos/${payment_id}`, // Link para o detalhe do pedido
       }
-    };
+    );
 
-    // Inicia o intervalo para verificar o status a cada 5 segundos
-    const interval = setInterval(checkPaymentStatus, 5000);
+    if (notificationResponse.status !== 201) {
+      console.error("Erro ao enviar notificação:", notificationResponse.data);
+    }
 
-    // Limpa o intervalo quando o componente é desmontado
-    return () => clearInterval(interval);
-  }, [cartao?.payment_id]);
-
-  useEffect(() => {
-    if (!pix) return; // Não faz nada se não houver paymentId
-
-    const checkPaymentStatus = async () => {
-      try {
-        const response = await fetch(`/api/payments/${pix.payment_id}/status`);
-        const data = await response.json();
-
-        if (data.status === "pago") {
-          setPix((prev: any) => ({ ...prev, status: "pago" }));
-          clearInterval(interval); // Para o intervalo quando o pagamento for aprovado
-          notify(pix.payment_id);
-          router.push(`/home/checkout/status?payment=${pix.payment_id}`);
-        }
-      } catch (error) {
-        console.error("Erro ao verificar status:", error);
-        clearInterval(interval); // Para o intervalo em caso de erro
+    const notificationResponseAdmin = await axios.post(
+      "/api/usuario/notifications",
+      {
+        title: "Pedido pendente",
+        email: process.env.NEXT_PUBLIC_ADMIN_EMAIL1, // O email do usuário que fez o pedido
+        href: `/dashboard/pedidos/${payment_id}`, // Link para o detalhe do pedido
       }
-    };
+    );
 
-    // Inicia o intervalo para verificar o status a cada 5 segundos
-    const interval = setInterval(checkPaymentStatus, 5000);
+    if (notificationResponseAdmin.status !== 201) {
+      console.error("Erro ao enviar notificação:", notificationResponse.data);
+    }
+  };
 
-    // Limpa o intervalo quando o componente é desmontado
-    return () => clearInterval(interval);
-  }, [pix?.payment_id]);
+  const usePaymentStatusChecker = (
+    paymentData: any,
+    router: any,
+    notify: any
+  ) => {
+    useEffect(() => {
+      if (!paymentData) return;
 
+      const checkPaymentStatus = async () => {
+        try {
+          const response = await fetch(
+            `/api/payments/${paymentData.payment_id}/status`
+          );
+          const data = await response.json();
+
+          if (data.status === "pago") {
+            if (setPix) setPix((prev: any) => ({ ...prev, status: "pago" }));
+            if (setCartao)
+              setCartao((prev: any) => ({ ...prev, status: "pago" }));
+            clearInterval(interval);
+            notify(paymentData.payment_id);
+            router.push(
+              `/home/checkout/status?payment=${paymentData.payment_id}`
+            );
+          }
+        } catch (error) {
+          console.error("Erro ao verificar status:", error);
+          clearInterval(interval);
+        }
+      };
+
+      const interval = setInterval(checkPaymentStatus, 5000);
+      return () => clearInterval(interval);
+    }, [paymentData?.payment_id]);
+  };
+
+  // Uso no componente:
+  usePaymentStatusChecker(cartao, router, notify);
+  usePaymentStatusChecker(pix, router, notify);
   useEffect(() => {
     const carregarDados = async () => {
       const dadosPedido = sessionStorage.getItem("pedidoPendente");
@@ -285,34 +292,6 @@ export default function Billing({
     } catch (error) {
       console.error("Erro ao finalizar pedido:", error);
       throw error;
-    }
-  };
-
-  const notify = async (payment_id: number) => {
-    const notificationResponse = await axios.post(
-      "/api/usuario/notifications",
-      {
-        title: "Pedido Finalizado",
-        email: session?.user?.email, // O email do usuário que fez o pedido
-        href: `/home/pedidos/${payment_id}`, // Link para o detalhe do pedido
-      }
-    );
-
-    if (notificationResponse.status !== 201) {
-      console.error("Erro ao enviar notificação:", notificationResponse.data);
-    }
-
-    const notificationResponseAdmin = await axios.post(
-      "/api/usuario/notifications",
-      {
-        title: "Pedido pendente",
-        email: process.env.NEXT_PUBLIC_ADMIN_EMAIL1, // O email do usuário que fez o pedido
-        href: `/dashboard/pedidos/${payment_id}`, // Link para o detalhe do pedido
-      }
-    );
-
-    if (notificationResponseAdmin.status !== 201) {
-      console.error("Erro ao enviar notificação:", notificationResponse.data);
     }
   };
 
