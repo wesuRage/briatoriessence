@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       response2 = await payment.get({ id: paymentId2 });
     }
     console.log(response1, response2);
+    console.log(paymentId, paymentId2);
 
     if (response1?.status === "approved") {
       await axios.patch(
