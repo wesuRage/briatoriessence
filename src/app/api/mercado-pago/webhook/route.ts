@@ -41,6 +41,10 @@ export async function POST(req: Request) {
         { status: "pago", payment_id: paymentId },
         { headers: { "Content-Type": "application/json" } }
       );
+      return NextResponse.json(
+        { status: "success", data: "Received" },
+        { status: 200 }
+      );
     }
 
     if (response2?.status === "approved") {
@@ -49,11 +53,15 @@ export async function POST(req: Request) {
         { status: "pago", payment_id: paymentId2 },
         { headers: { "Content-Type": "application/json" } }
       );
+      return NextResponse.json(
+        { status: "success", data: "Received" },
+        { status: 200 }
+      );
     }
 
     return NextResponse.json(
-      { status: "success", data: "Received" },
-      { status: 200 }
+      { status: "success", data: "Bad Request" },
+      { status: 400 }
     );
   } catch (error) {
     console.error("Erro ao processar webhook:", error);
