@@ -134,6 +134,8 @@ export async function POST(req: Request) {
       },
     });
 
+    console.log(result);
+
     // Atualização do pedido no banco de dados
     const userPedido = await prisma.pedido.create({
       data: {
