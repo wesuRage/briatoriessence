@@ -158,6 +158,7 @@ export default function Billing({ session }: { session: Session | null }) {
   // Uso no componente:
   usePaymentStatusChecker(cartao, router, notify);
   usePaymentStatusChecker(pix, router, notify);
+
   useEffect(() => {
     const carregarDados = async () => {
       const dadosPedido = sessionStorage.getItem("pedidoPendente");
@@ -227,9 +228,7 @@ export default function Billing({ session }: { session: Session | null }) {
           device_id: MP_DEVICE_SESSION_ID,
         })
         .then(async (response) => {
-          if (response.data.status === "pendente") {
-            await finalizarPedido("cartao", response.data);
-          }
+          await finalizarPedido("cartao", response.data);
         })
         .catch((error) => {
           console.error(error);
@@ -261,9 +260,7 @@ export default function Billing({ session }: { session: Session | null }) {
         },
       });
 
-      if (response.data.status === "pendente") {
-        await finalizarPedido("pix", await response.data);
-      }
+      await finalizarPedido("pix", await response.data);
     } catch (error) {
       console.error("Erro no pagamento PIX:", error);
       alert("Erro ao gerar PIX!");
@@ -286,7 +283,6 @@ export default function Billing({ session }: { session: Session | null }) {
           break;
         case "pix":
           setPix(response);
-          break;
           break;
       }
     } catch (error) {
