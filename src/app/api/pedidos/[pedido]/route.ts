@@ -38,11 +38,11 @@ export async function PATCH(
       return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
     const { pedido } = await params;
-    const { codigoRastreio } = await req.json();
+    const { codigoRastreio, statusEnvio } = await req.json();
 
     const data = await prisma.pedido.update({
       where: { pagamentoId: Number(pedido) },
-      data: { codigoRastreio },
+      data: { codigoRastreio, statusEnvio },
     });
 
     return NextResponse.json({ status: "success", data });

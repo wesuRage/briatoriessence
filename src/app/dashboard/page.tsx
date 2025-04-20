@@ -4,6 +4,7 @@ import Main from "@/components/Main";
 import ProdutoCard from "@/components/ProdutoCard";
 import axios from "axios";
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -78,6 +79,8 @@ export default function Dashboard() {
 
   if (!pedidos || !produtos) return <h1>Carregando...</h1>;
 
+  const pedidosPendentes = pedidos.filter((pedido: { statusEnvio: string; }) => pedido.statusEnvio === "processando");
+
   return (
     <Main>
       <section className="flex justify-end w-full">
@@ -86,19 +89,41 @@ export default function Dashboard() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-2xl">
-                  Pedidos - {pedidos.length} pendentes
+                  Pedidos - {pedidosPendentes.length} {pedidosPendentes.length === 1 ? "pendente" : "pendentes"}
                 </h2>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 mt-4 md:ml-auto border-2 rounded-md border-gray-300 overflow-y-scroll max-h-[400px] p-10 bg-white shadow-xl">
+            <div className="grid grid-cols-1 gap-4 mt-4 md:ml-auto border-2 rounded-md border-gray-300 overflow-y-auto max-h-[400px] p-4 bg-white shadow-xl">
               {pedidos.length > 0 ? (
-                pedidos.map((pedido: any, index: number) => (
-                  <section key={index} className="">
-                    
-                  </section>
+                [...pedidos].reverse().map((pedido: any, index: number) => (
+                  <Link
+                    key={index}
+                    className="flex items-center gap-4 p-3 border-2 border-gray-300 rounded-md relative"
+                    href={`/dashboard/pedidos/${pedido.pagamentoId}`}
+                    prefetch
+                  >
+                    <div className="relative w-20 h-20 flex-shrink-0">
+                      <Image
+                        draggable={false}
+                        fill
+                        className="rounded-md object-cover"
+                        src={pedido.produtos[0].imagens[0]}
+                        alt={pedido.nomeDestinatario}
+                      />
+                    </div>
+                    <div>
+                      <h1 className="text-black text-lg font-semibold">
+                        {pedido.nomeDestinatario}
+                      </h1>
+                      <p className="text-gray-600">R${pedido.valorTotal}</p>
+                      <p className="text-gray-600">
+                        {new Date(pedido.updatedAt).toLocaleString()} - {pedido.statusEnvio === "processando" ? "Pendente" : "Enviado"}
+                      </p>
+                    </div>
+                  </Link>
                 ))
               ) : (
-                <h1>Não há pedidos pendentes</h1>
+                <h1 className="p-4 text-center">Não há pedidos pendentes</h1>
               )}
             </div>
           </div>

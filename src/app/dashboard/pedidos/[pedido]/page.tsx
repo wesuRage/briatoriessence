@@ -34,6 +34,7 @@ export default function Pedido({
 
     await axios.patch(`/api/pedidos/${pedidoId}`, {
       codigoRastreio: e.target[0].value,
+      statusEnvio: "enviado",
     });
 
     await axios.post("/api/usuario/notifications", {
